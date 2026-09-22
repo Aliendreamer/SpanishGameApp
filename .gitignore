@@ -1,0 +1,68 @@
+# Dependencies
+node_modules/
+
+# Expo / React Native
+.expo/
+.expo-shared/
+dist/
+web-build/
+expo-env.d.ts
+ios/
+android/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# Metro
+.metro-health-check*
+
+# Build / test output
+build/
+coverage/
+*.tsbuildinfo
+
+# Logs
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+pnpm-debug.log*
+*.log
+
+# Environment
+.env
+.env*.local
+
+# Exported git-crypt key — never commit; anyone holding it can decrypt config.conf
+spanishappkey
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.idea
+
+# Claude Code — per-developer settings
+.claude/settings.local.json
+
+# Empty shell dotfiles the agent sandbox leaves in the repo root
+.bashrc
+.bash_profile
+.profile
+.zshrc
+.zprofile
+.gitconfig
+.ripgreprc
+# Also sandbox placeholders today — delete these lines if the repo gains a real one
+.gitmodules
+.mcp.json
+.claude/agents
+.claude/hooks
+.claude/output-styles
+.claude/routines
+.claude/workflows
+.claude/launch.json
+.claude/loop.md
+.claude/scheduled_tasks.json

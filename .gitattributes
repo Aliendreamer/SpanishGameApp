@@ -1,0 +1,39 @@
+# Normalize line endings to LF (repo is edited from WSL2 and Windows)
+* text=auto eol=lf
+
+# Windows-only scripts keep CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Shell scripts must stay LF or hooks break
+*.sh text eol=lf
+
+# Lockfiles: no textual merges, collapsed in diffs
+package-lock.json -diff linguist-generated=true
+pnpm-lock.yaml    -diff linguist-generated=true
+yarn.lock         -diff linguist-generated=true
+
+# Binary assets
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.mp3 binary
+*.wav binary
+*.ogg binary
+*.m4a binary
+*.mp4 binary
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
+*.zip binary
+*.jar binary
+*.keystore binary
+
+# Encrypted with git-crypt — keep these rules last so nothing above overrides them
+config.conf filter=git-crypt diff=git-crypt

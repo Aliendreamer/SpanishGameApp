@@ -1,0 +1,124 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git*)",
+      "SKILL(*)",
+      "mcp__azure-devops__core_list_projects",
+      "mcp__azure-devops__search_workitem",
+      "mcp__azure-devops__wit_get_work_item",
+      "mcp__azure-devops__wit_get_work_item_attachment",
+      "mcp__azure-devops__wit_get_work_items_batch_by_ids",
+      "mcp__azure-devops__wit_list_work_item_comments",
+      "mcp__azure-devops__wit_query_by_wiql",
+      "mcp__plugin_serena_serena__*"
+    ],
+    "ask": [
+      "Bash(git commit*)",
+      "Bash(git push*)"
+    ],
+    "deny": [
+      "Bash(git branch --delete --force*)",
+      "Bash(git branch -D*)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git reset --hard*)",
+      "Bash(rm -rf*)"
+    ]
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PROJECT_DIR:-.}/.claude/claude-hooks/dev-flow-reminder.sh\"",
+            "statusMessage": "Loading development flow"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Grep",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PROJECT_DIR:-.}/.claude/claude-hooks/prefer-serena.sh\""
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PROJECT_DIR:-.}/.claude/claude-hooks/prefer-serena.sh\""
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true,
+    "serena@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": true,
+    "feature-dev@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": true,
+    "security-guidance@claude-plugins-official": true,
+    "csharp-lsp@claude-plugins-official": false,
+    "dotnet-aspnet@dotnet-agent-skills": false,
+    "dotnet-data@dotnet-agent-skills": false,
+    "dotnet-maui@dotnet-agent-skills": false,
+    "microsoft-docs@claude-plugins-official": false,
+    "qdrant-skills@claude-plugins-official": false,
+    "chrome-devtools-mcp@claude-plugins-official": false,
+    "code-review@claude-plugins-official": false,
+    "mcp-server-dev@claude-plugins-official": false,
+    "huggingface-skills@claude-plugins-official": false,
+    "remember@claude-plugins-official": false,
+    "claude-code-setup@claude-plugins-official": false,
+    "commit-commands@claude-plugins-official": false,
+    "cloudflare@claude-plugins-official": false,
+    "expo@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true
+  },
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true,
+    "allowUnsandboxedCommands": false,
+    "network": {
+      "allowedDomains": [
+        "*.githubusercontent.com",
+        "*.npmjs.org",
+        "codeload.github.com",
+        "github.com",
+        "registry.npmjs.org",
+        "registry.yarnpkg.com"
+      ]
+    },
+    "filesystem": {
+      "allowWrite": [
+        "/usr/local/share/.yarn-global",
+        "~/.cache",
+        "~/.local/share/pnpm",
+        "~/.npm"
+      ]
+    }
+  },
+  "mcpServers": {
+    "serena": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--context",
+        "claude-code",
+        "--project-from-cwd",
+        "--open-web-dashboard",
+        "false"
+      ]
+    }
+  }
+}
