@@ -2,18 +2,41 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project status
+## Stack
 
-SpanishGameApp has no application code yet — there is no manifest, so no build, test, or lint
-commands exist. Update this file with commands and architecture once the app is scaffolded.
+Expo SDK 57 + Expo Router + TypeScript, React Native 0.86, Android only, pnpm. Roadmap and
+agreed decisions: `openspec/ROADMAP.md`. Expo docs: read the SDK 57 pages
+(`https://docs.expo.dev/versions/v57.0.0/`), not `latest` — the Expo MCP docs tools are allowed.
+
+## Commands
+
+- `pnpm start` — dev server over an Expo tunnel (reaches the phone from WSL2); scan the QR code in
+  Expo Go. `@expo/ngrok` is a pinned devDependency so Expo never installs it with npm.
+- `pnpm check` — every gate: `typecheck`, `lint`, `format:check`, `test`, `check:pins`,
+  `expo:doctor` (fail-fast)
+- `pnpm test -- src/screens/home` — run one test file or folder
+- `pnpm format` — apply Prettier
+- Add packages with `pnpm expo install <pkg>`; it writes `~` ranges regardless of `.npmrc`, so pin
+  them exactly afterwards — `check:pins` fails otherwise.
+
+## Layout and gotchas
+
+- `src/app` holds routes only; screen bodies live in `src/screens/<name>/`, reusable UI in
+  `src/components`, helpers in `src/utils`. Tests sit next to the file they test. Import via `@/`.
+- `pnpm doctor` is pnpm's own built-in command, not ours — the Expo check is `pnpm expo:doctor`.
+- Expo CLI telemetry writes `~/.expo`, which the agent sandbox blocks: run Expo commands with
+  `EXPO_NO_TELEMETRY=1`. `expo:doctor` needs `exp.host` and `reactnative.directory` (allowed in
+  the sandbox), and in the sandbox Node's `fetch` only uses the proxy with `NODE_USE_ENV_PROXY=1`
+  — so the agent runs the gates as `NODE_USE_ENV_PROXY=1 EXPO_NO_TELEMETRY=1 pnpm check`.
+- `pnpm.overrides` pins `test-renderer` to 1.2.0: 1.3.0 needs React 19.3, and React Native 0.86
+  ships 19.2.3. Drop the override once React Native moves to React 19.3.
 
 ## OpenSpec
 
 Changes are planned with OpenSpec (`openspec/`, schema `spec-driven`). Specs live in
 `openspec/specs/`, in-flight changes in `openspec/changes/`, finished ones in
 `openspec/changes/archive/`. Drive it with `/opsx:propose`, `/opsx:apply`, `/opsx:sync`, and
-`/opsx:archive`. Project context for generated artifacts belongs in `openspec/config.yaml`
-(`context:` is currently unset).
+`/opsx:archive`. Project context and artifact rules live in `openspec/config.yaml`.
 
 ## How developer-flow runs in this repo
 

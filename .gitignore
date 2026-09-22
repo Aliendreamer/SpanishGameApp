@@ -16,6 +16,9 @@ android/
 *.mobileprovision
 *.orig.*
 
+.kotlin/
+*.pem
+
 # Metro
 .metro-health-check*
 

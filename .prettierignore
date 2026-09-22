@@ -1,0 +1,9 @@
+.claude/
+.expo/
+openspec/
+assets/
+coverage/
+dist/
+*.md
+pnpm-lock.yaml
+config.conf

@@ -10,7 +10,9 @@
       "mcp__azure-devops__wit_get_work_items_batch_by_ids",
       "mcp__azure-devops__wit_list_work_item_comments",
       "mcp__azure-devops__wit_query_by_wiql",
-      "mcp__plugin_serena_serena__*"
+      "mcp__plugin_serena_serena__*",
+      "mcp__plugin_expo_expo__search_documentation",
+      "mcp__plugin_expo_expo__read_documentation"
     ],
     "ask": [
       "Bash(git commit*)",
@@ -56,6 +58,18 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=$(jq -r '.tool_input.file_path // .tool_response.filePath // empty' 2>/dev/null); case \"$f\" in *.ts|*.tsx|*.js|*.jsx|*.scss|*.css) [ -f \"$f\" ] && cd \"${CLAUDE_PROJECT_DIR:-.}\" && ./node_modules/.bin/prettier --ignore-unknown --write \"$f\" >/dev/null 2>&1 ;; esac; exit 0",
+            "statusMessage": "Formatting with prettier…"
+          }
+        ]
+      }
     ]
   },
   "enabledPlugins": {
@@ -91,7 +105,9 @@
         "*.githubusercontent.com",
         "*.npmjs.org",
         "codeload.github.com",
+        "exp.host",
         "github.com",
+        "reactnative.directory",
         "registry.npmjs.org",
         "registry.yarnpkg.com"
       ]

@@ -1,5 +1,12 @@
 schema: spec-driven
 
+context: |
+  Android-only React Native app: Expo SDK 57, Expo Router, TypeScript (strict), pnpm.
+  Tinder-style Spanish vocabulary swipe game, fully offline — no backend, no network at runtime.
+  Layout: src/app routes only; src/screens, src/components, src/hooks, src/utils; tests colocated.
+  Gates: pnpm check (typecheck, lint, format:check, test, check:pins, expo:doctor).
+  Dependencies are pinned to exact versions. Roadmap and agreed decisions: openspec/ROADMAP.md.
+
 # Project context (optional)
 # This is shown to AI when creating artifacts.
 # Add your tech stack, conventions, style guides, domain knowledge, etc.
