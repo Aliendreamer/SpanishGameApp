@@ -1,0 +1,123 @@
+## Context
+
+Expo SDK 57 / React Native 0.86 app, Android only, pnpm, developed on WSL2 (Ubuntu 24.04). No JDK
+or Android SDK installed; no `eas-cli`. React Native 0.86 already defaults to targetSdk 36,
+compileSdk 36, build-tools 36.0.0, NDK 27.1.12297006, minSdk 24. The user may drop EAS later, so
+nothing essential may exist only on Expo's servers.
+
+## Goals / Non-Goals
+
+**Goals:**
+
+- `development`, `preview`, `production` builds from three paths: EAS cloud, `eas build --local`,
+  Gradle-only.
+- Target/compile SDK 36 pinned in config and asserted by a test.
+- A toolchain the user can install with one script and verify with one command.
+- One upload key, managed by EAS, with an encrypted backup in the repo that both local paths use.
+
+**Non-Goals:**
+
+- Play Store submission, listing, or `eas submit`.
+- CI pipelines.
+- Committing `android/` — it stays generated (continuous native generation).
+
+## Decisions
+
+**Toolchain without Android Studio.** `scripts/setup-android.sh` (re-runnable, run by the user —
+it needs `sudo` and downloads): `openjdk-17-jdk-headless` via apt; Android command-line tools
+unpacked to `~/Android/Sdk/cmdline-tools/latest`; `sdkmanager` installs `platform-tools`,
+`platforms;android-36`, `build-tools;36.0.0`, `ndk;27.1.12297006`, and accepts licences. It
+prints the `JAVA_HOME` / `ANDROID_HOME` / `PATH` lines for `~/.zshrc` rather than editing the
+user's shell files. Alternative — Android Studio on Windows with the SDK shared into WSL — mixes
+Windows and Linux paths and breaks Gradle file watching.
+
+**`doctor:android`.** `scripts/doctor-android.js` checks `java -version` is 17, `JAVA_HOME` and
+`ANDROID_HOME` are set, and the four SDK packages exist; prints each as ✓/✗ and exits non-zero on
+any ✗. The checking logic is a pure function over collected facts, unit-tested. Not part of
+`pnpm check` — it describes the machine, not the code.
+
+**Profiles (`eas.json`).**
+
+| Profile | Android output | Extras |
+|---|---|---|
+| `development` | `buildType: apk`, `developmentClient: true`, `distribution: internal` | debug-signed locally |
+| `preview` | `buildType: apk`, `distribution: internal` | release-signed |
+| `production` | `buildType: app-bundle`, `autoIncrement: true` | release-signed |
+
+`cli.appVersionSource: remote` so EAS owns `versionCode` for cloud builds; the Gradle path uses
+`android.versionCode` from `app.json` (bumped by hand for a local production build). `eas-cli` runs as
+`pnpm eas …` through a script `pnpm dlx eas-cli@24.7.0` — pinned, pnpm-only, and not a project
+dependency (`expo-doctor` fails when `eas-cli` is installed in the project).
+
+**Same pnpm and Node on EAS.** EAS picked a newer pnpm than the local one, ignored the `pnpm` field
+in `package.json`, and rejected the lockfile under pnpm 11+'s default `minimumReleaseAge` policy.
+The repo now standardises on pnpm 12.5.1: `packageManager` in `package.json`, a `base` profile in
+`eas.json` (`pnpm: 12.5.1`, `node: 24.12.0`) that every profile extends, and pnpm settings
+(`overrides`, `saveExact`, `allowBuilds`) in `pnpm-workspace.yaml`. The release-age policy is kept;
+the lockfile was re-resolved to satisfy it instead of excluding packages. A test keeps `eas.json`'s
+pnpm equal to `packageManager`.
+
+**Expo Go keeps working.** With `expo-dev-client` installed, `expo start` defaults to the dev
+client, so `pnpm start` is `expo start --tunnel --go` and `pnpm start:dev` serves the development
+build.
+
+**Three paths, one set of scripts.**
+
+- Cloud: `pnpm build:<profile>` → `pnpm eas build -p android --profile <profile>`.
+- EAS local: `pnpm build:<profile>:local` → same with `--local`, artifacts to `build/`.
+- Gradle-only: `pnpm build:<profile>:gradle` → `scripts/build-gradle.sh <profile>`:
+  `expo prebuild --platform android --clean`, then `assembleDebug` (development),
+  `assembleRelease` (preview), or `bundleRelease` (production), signed by the config plugin from
+  `ORG_GRADLE_PROJECT_*` values read out of `credentials.json`. Output copied to `build/`.
+
+**Target SDK pinned.** `expo-build-properties` plugin in `app.json` with
+`android.compileSdkVersion: 36` and `android.targetSdkVersion: 36`. They equal today's defaults;
+pinning makes an SDK upgrade that changes them visible in a diff, and a test asserts them.
+
+**Signing: EAS-managed, backed up locally.** The first cloud build generates the upload keystore on
+EAS. `pnpm eas credentials` downloads it once to `credentials/android/keystore.jks` plus a root
+`credentials.json` (the path and filename EAS expects for local credentials). Both are listed in
+`.gitattributes` with `filter=git-crypt diff=git-crypt`, so they are encrypted in git like
+`config.conf`. Cloud builds keep `credentialsSource: remote`; `eas build --local` also uses remote
+(it downloads from EAS); the Gradle path reads the local files. If EAS is dropped, switching the
+profiles to `credentialsSource: local` is a one-line change.
+
+**Release signing in generated Gradle.** `android/` is regenerated by every prebuild, so hand edits
+are lost. `plugins/with-release-signing.js` is a config plugin (`withAppBuildGradle`) that adds a
+`release` signing config reading `SPANISH_UPLOAD_STORE_FILE`, `…_STORE_PASSWORD`, `…_KEY_ALIAS`,
+`…_KEY_PASSWORD` Gradle properties, and points `buildTypes.release.signingConfig` at it when those
+properties are present (otherwise it keeps debug signing, so a bare `expo run:android` still works).
+The transform is idempotent, unit-tested, and throws if the Expo template layout changes.
+`scripts/build-gradle.sh` reads `credentials.json` once with `jq` (failing fast on a missing field)
+and passes the values as `ORG_GRADLE_PROJECT_*` environment variables — not `-P` arguments, which
+would show in the process list. Nothing is written into `android/`.
+Alternative tried and rejected: Expo's own `AndroidConfig.EasBuild.configureEasBuildAsync` signing
+script. On Gradle 9.3 it fails with "too late to set storeFilePath", swallows the error, and the
+release build then fails.
+
+**Keeping credentials out of cloud uploads.** git-crypt decrypts files in the working tree, and EAS
+uploads the working tree. `.easignore` excludes `credentials.json` and `credentials/`, and repeats
+the `.gitignore` entries because EAS uses `.easignore` *instead of* `.gitignore` when it exists.
+A test asserts both credential paths are in `.easignore`.
+
+**Agent can build.** The sandbox allowlist gains `services.gradle.org`, `plugins.gradle.org`,
+`repo.maven.apache.org`, `dl.google.com`, `maven.google.com` so the agent can run the Gradle path
+and iterate on failures.
+
+**Licence.** `LICENSE` (MIT, © 2026 Aliendreamer) covers the code. The vocabulary data notice is
+step 3.
+
+## Risks / Trade-offs
+
+- [`eas build --local` is not officially supported on WSL] → the Gradle-only path is the fallback
+  and needs nothing from EAS.
+- [Losing the git-crypt key loses the keystore backup] → the key is already kept outside the repo
+  (`spanishappkey`); EAS still holds the original.
+- [Gradle-only production build reuses a `versionCode` EAS already used] → document bumping
+  `android.versionCode` before a local production build; production uploads normally come from EAS.
+- [First Gradle build downloads several GB and takes long] → one-time; caches live in
+  `~/.gradle`, which the agent sandbox must be allowed to write (`sandbox.filesystem.allowWrite`).
+- [Credentials accidentally uploaded to EAS] → `.easignore` plus a test that fails if the entries
+  are removed.
+- [`eas init` / `eas login` / first cloud build need the user] → listed as user tasks; the agent
+  continues once `extra.eas.projectId` exists.

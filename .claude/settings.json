@@ -105,17 +105,23 @@
         "*.githubusercontent.com",
         "*.npmjs.org",
         "codeload.github.com",
+        "dl.google.com",
         "exp.host",
         "github.com",
+        "maven.google.com",
+        "plugins.gradle.org",
         "reactnative.directory",
         "registry.npmjs.org",
-        "registry.yarnpkg.com"
+        "registry.yarnpkg.com",
+        "repo.maven.apache.org",
+        "services.gradle.org"
       ]
     },
     "filesystem": {
       "allowWrite": [
         "/usr/local/share/.yarn-global",
         "~/.cache",
+        "~/.gradle",
         "~/.local/share/pnpm",
         "~/.npm"
       ]

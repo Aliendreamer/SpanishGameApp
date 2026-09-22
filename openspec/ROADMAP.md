@@ -5,12 +5,15 @@ Fully local on the phone — no backend, no accounts, no network at runtime.
 
 Each step is its own OpenSpec change, approved and committed before the next starts.
 
-1. **`app-skeleton`** — Expo + TypeScript project, folder structure, quality gates (typecheck,
-   lint, format, test), exact-pinned dependencies. No features, no data.
-2. **`android-builds`** — local Gradle build (JDK 17 + Android SDK setup on WSL2) and EAS Build
-   (`eas.json`, APK profile).
+1. **`app-skeleton`** — done (archived 2026-09-22).
+2. **`android-builds`** — done (archived 2026-09-22).
 3. **`vocabulary-import`** — `tools/vocabulary-import`: generate the vocabulary JSON per
    `VOCABLARIRY_SOURCES.md` (Doozan primary, CEFR enrichment).
+   - CEFR is an **optional input behind a switch**: without it, levels fall back to Doozan
+     frequency bands, so the app never depends on the unlicensed CEFR dataset.
+   - Ship a data licence notice: generated vocabulary is CC-BY-SA (Wiktionary via Doozan), example
+     sentences CC-BY (Tatoeba), with attribution. Ask the CEFR dataset author for a licence before
+     any Play Store upload.
 4. **`swipe-game-ui`** — design and implement the game UI (see decisions below).
 
 Later: undo, streaks, statistics, English → Spanish, hints, topics.

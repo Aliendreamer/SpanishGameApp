@@ -1,3 +1,5 @@
+# EAS uses this file INSTEAD of .gitignore: keep every .gitignore entry here (a test checks).
+
 # Dependencies
 node_modules/
 
@@ -71,3 +73,7 @@ Thumbs.db
 .claude/launch.json
 .claude/loop.md
 .claude/scheduled_tasks.json
+
+# Signing credentials: decrypted in the working tree by git-crypt, never uploaded to EAS
+credentials.json
+credentials/

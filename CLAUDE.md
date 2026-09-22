@@ -4,7 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Stack
 
-Expo SDK 57 + Expo Router + TypeScript, React Native 0.86, Android only, pnpm. Roadmap and
+Expo SDK 57 + Expo Router + TypeScript, React Native 0.86, Android only, pnpm 12 (`packageManager`
+in `package.json`; EAS builds use the same pnpm and Node via the `base` profile in `eas.json`). Roadmap and
 agreed decisions: `openspec/ROADMAP.md`. Expo docs: read the SDK 57 pages
 (`https://docs.expo.dev/versions/v57.0.0/`), not `latest` — the Expo MCP docs tools are allowed.
 
@@ -12,12 +13,37 @@ agreed decisions: `openspec/ROADMAP.md`. Expo docs: read the SDK 57 pages
 
 - `pnpm start` — dev server over an Expo tunnel (reaches the phone from WSL2); scan the QR code in
   Expo Go. `@expo/ngrok` is a pinned devDependency so Expo never installs it with npm.
+- `pnpm start:dev` — same, for the development build (`expo-dev-client`) instead of Expo Go.
 - `pnpm check` — every gate: `typecheck`, `lint`, `format:check`, `test`, `check:pins`,
   `expo:doctor` (fail-fast)
 - `pnpm test -- src/screens/home` — run one test file or folder
 - `pnpm format` — apply Prettier
 - Add packages with `pnpm expo install <pkg>`; it writes `~` ranges regardless of `.npmrc`, so pin
   them exactly afterwards — `check:pins` fails otherwise.
+
+## Android builds
+
+Profiles `development` (dev-client APK), `preview` (release APK), `production` (AAB), each three
+ways — output lands in `build/`:
+
+- `pnpm build:<profile>` — EAS cloud (free plan queues)
+- `pnpm build:<profile>:local` — EAS build process on this machine (WSL: works, not officially
+  supported)
+- `pnpm build:<profile>:gradle` — `scripts/build-gradle.sh`: prebuild + Gradle, no Expo account.
+  Release profiles need `credentials.json`. First build ~17 min, cached ~9 min; `android/` is
+  generated, never committed. Gradle builds do not run inside the agent sandbox (Android Gradle
+  Plugin writes to `/tmp`, file watching fails) — the user runs them; the agent verifies the output
+  with `apksigner verify --print-certs`. Never run two builds at once: they share `android/`.
+
+Toolchain: `scripts/setup-android.sh` installs JDK 17 + SDK (platform 36, build-tools 36.0.0, NDK
+27.1) — command-line tools 16111833+ use the new `android sdk install` CLI, not `sdkmanager`.
+Verify with `pnpm doctor:android`. EAS CLI runs as `pnpm eas …` (`pnpm dlx eas-cli@24.7.0`); it
+must not be a project dependency — `expo-doctor` fails if it is.
+
+Signing: EAS manages the upload key; the backup is `credentials.json` + `credentials/android/keystore.jks`,
+encrypted with git-crypt and excluded from EAS uploads by `.easignore`. `.easignore` replaces
+`.gitignore` for EAS, so keep every `.gitignore` entry in it (a test checks). A local production
+build needs `android.versionCode` bumped in `app.json` by hand; EAS auto-increments its own.
 
 ## Layout and gotchas
 
@@ -28,8 +54,12 @@ agreed decisions: `openspec/ROADMAP.md`. Expo docs: read the SDK 57 pages
   `EXPO_NO_TELEMETRY=1`. `expo:doctor` needs `exp.host` and `reactnative.directory` (allowed in
   the sandbox), and in the sandbox Node's `fetch` only uses the proxy with `NODE_USE_ENV_PROXY=1`
   — so the agent runs the gates as `NODE_USE_ENV_PROXY=1 EXPO_NO_TELEMETRY=1 pnpm check`.
-- `pnpm.overrides` pins `test-renderer` to 1.2.0: 1.3.0 needs React 19.3, and React Native 0.86
-  ships 19.2.3. Drop the override once React Native moves to React 19.3.
+- pnpm settings live in `pnpm-workspace.yaml` (pnpm 11+ ignores the `pnpm` field in `package.json`
+  and `.npmrc` settings; `.npmrc` stays only for tools that read it). It pins `test-renderer` to
+  1.2.0 (1.3.0 needs React 19.3; React Native 0.86 ships 19.2.3) and keeps pnpm's default
+  `minimumReleaseAge` (packages under 24 h old are refused). If an install trips that rule, re-resolve
+  with `pnpm clean --lockfile && pnpm install` — don't add `minimumReleaseAgeExclude` entries.
+- pnpm 12 has no `-s` flag; use `pnpm <script>` or `pnpm --silent <script>`.
 
 ## OpenSpec
 

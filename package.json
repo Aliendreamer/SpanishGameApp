@@ -4,7 +4,9 @@
   "version": "1.0.0",
   "dependencies": {
     "expo": "57.0.24",
+    "expo-build-properties": "57.0.21",
     "expo-constants": "57.0.19",
+    "expo-dev-client": "57.0.19",
     "expo-linking": "57.0.10",
     "expo-router": "57.0.22",
     "expo-splash-screen": "57.0.9",
@@ -29,8 +31,9 @@
     "typescript": "6.0.3"
   },
   "scripts": {
-    "start": "expo start --tunnel",
-    "android": "expo start --android",
+    "start": "expo start --tunnel --go",
+    "start:dev": "expo start --tunnel --dev-client",
+    "android": "expo run:android",
     "typecheck": "tsc --noEmit",
     "lint": "expo lint",
     "format": "prettier --write .",
@@ -38,18 +41,25 @@
     "test": "jest",
     "check:pins": "node scripts/check-pins.js",
     "expo:doctor": "expo-doctor",
-    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm check:pins && pnpm expo:doctor"
+    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm check:pins && pnpm expo:doctor",
+    "doctor:android": "node scripts/doctor-android.js",
+    "build:development": "pnpm eas build -p android --profile development",
+    "build:development:local": "pnpm eas build -p android --profile development --local --output build/development.apk",
+    "build:development:gradle": "scripts/build-gradle.sh development",
+    "build:preview": "pnpm eas build -p android --profile preview",
+    "build:preview:local": "pnpm eas build -p android --profile preview --local --output build/preview.apk",
+    "build:preview:gradle": "scripts/build-gradle.sh preview",
+    "build:production": "pnpm eas build -p android --profile production",
+    "build:production:local": "pnpm eas build -p android --profile production --local --output build/production.aab",
+    "build:production:gradle": "scripts/build-gradle.sh production",
+    "eas": "pnpm dlx eas-cli@24.7.0"
   },
   "private": true,
+  "packageManager": "pnpm@12.5.1+sha512.e3f305bc784a2bc89f5ad3b6138889470fae8d2af5f36b61216ec91c2c3d64089775f9de38aac331044ea40f245cb0d5666392dfdf65824e1907ef6a2c62de5f",
   "jest": {
     "preset": "jest-expo",
     "transformIgnorePatterns": [
       "node_modules/(?!(.pnpm|(jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@sentry/react-native|native-base|react-native-svg))"
     ]
-  },
-  "pnpm": {
-    "overrides": {
-      "test-renderer": "1.2.0"
-    }
   }
 }

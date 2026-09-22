@@ -26,12 +26,30 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
-      ]
+      ],
+      "expo-dev-client",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 36,
+            "targetSdkVersion": 36
+          }
+        }
+      ],
+      "./plugins/with-release-signing"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
     },
-    "platforms": ["android"]
+    "platforms": ["android"],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "54244a5d-0be5-4ab1-9873-51c3628a131b"
+      }
+    },
+    "owner": "aliendreamer"
   }
 }
