@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { PrimaryButton } from '@/components/primary-button';
+import { StepHeading } from '@/components/step-heading';
 import { colors, fonts, radii } from '@/theme';
 
 const MAX_LENGTH = 20;
@@ -29,10 +30,10 @@ export function Username({ onSubmit }: Props) {
 
   return (
     <View style={styles.content}>
-      <View style={styles.copy}>
-        <Text style={styles.title}>What should we call you?</Text>
-        <Text style={styles.body}>Pick a username. It stays on this phone.</Text>
-      </View>
+      <StepHeading
+        title="What should we call you?"
+        body="Pick a username. It stays on this phone."
+      />
       <View style={styles.field}>
         <TextInput
           value={name}
@@ -69,22 +70,6 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     gap: 18,
-  },
-  copy: {
-    gap: 8,
-  },
-  title: {
-    fontFamily: fonts.extraBold,
-    fontSize: 32,
-    lineHeight: 34,
-    letterSpacing: -0.6,
-    color: colors.ink,
-  },
-  body: {
-    fontFamily: fonts.regular,
-    fontSize: 16,
-    lineHeight: 23,
-    color: colors.bodyMuted,
   },
   field: {
     gap: 8,

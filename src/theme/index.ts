@@ -9,6 +9,8 @@ export const colors = {
   roseLight: '#F28BAB',
   cardCircle: '#E2638F',
   surface: '#FFF6F8',
+  // Unselected option cards: surface at 45%.
+  surfaceFaint: 'rgba(255, 246, 248, 0.45)',
   soft: '#F7D6DF',
   track: '#EFBCCD',
   ink: '#3B1624',

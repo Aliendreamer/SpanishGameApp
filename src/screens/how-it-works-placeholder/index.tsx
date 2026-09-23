@@ -2,11 +2,11 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { colors, fonts } from '@/theme';
 
-// Stands in for onboarding step 3 until the Level screen is built.
-export function LevelPlaceholder() {
+// Stands in for onboarding step 4 until the How it works screen is built.
+export function HowItWorksPlaceholder() {
   return (
     <View style={styles.content}>
-      <Text style={styles.text}>Level — coming next</Text>
+      <Text style={styles.text}>How it works — coming next</Text>
     </View>
   );
 }

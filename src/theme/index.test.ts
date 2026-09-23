@@ -10,6 +10,7 @@ describe('theme', () => {
       roseLight: '#F28BAB',
       cardCircle: '#E2638F',
       surface: '#FFF6F8',
+      surfaceFaint: 'rgba(255, 246, 248, 0.45)',
       soft: '#F7D6DF',
       track: '#EFBCCD',
       ink: '#3B1624',

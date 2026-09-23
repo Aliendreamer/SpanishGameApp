@@ -20,9 +20,17 @@ The user designed the app UI in Claude Design and likes it. It is the reference 
 **How the onboarding screens are built:**
 - Routes live in `src/app/onboarding/`. `_layout.tsx` holds the ordered `STEPS` list of segment and href pairs, and wraps a Stack in `OnboardingShell`.
 - `OnboardingShell` (`src/screens/onboarding-shell/`) provides the dots, Back and padding.
-- Screens render only their content. Forward pushes use `{ dangerouslySingular: true }`.
+- Screens render only their content.
+- Onboarding is one-way (user decision, 2026-09-23). Welcome and Username move forward with `router.replace`, and "Get started" skips Username when a username is saved.
+- Back is set per step in `STEPS` (`back: true` from How it works on).
+- `PrimaryButton` ignores presses while an async `onPress` runs, via `src/utils/single-flight.ts`.
 - User prefs go through `src/storage/prefs.ts` (AsyncStorage).
-- Level is currently a placeholder (`src/screens/level-placeholder`).
+- Level is done (change `level-screen`, archived 2026-09-23). How it works is a placeholder (`src/screens/how-it-works-placeholder`).
+- Game settings live in `progress.db` (user chose SQLite now over AsyncStorage).
+  - `src/storage/progress-db.ts`: migrations tracked by `PRAGMA user_version` and a one-row `settings` table.
+  - `SQLiteProvider` in the root layout; `onError` shows `StartupError`.
+- Tests run the real SQL through `scripts/node-sqlite-db.js`, which uses `node:sqlite`, and mock `useSQLiteContext` to return it.
+- Onboarding steps share a `StepHeading` component (`src/components/step-heading.tsx`).
 
 **Open technical points:**
 - long real meanings vs the 36/800 meaning type on the card back
