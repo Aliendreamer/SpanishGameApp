@@ -1,57 +1,38 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PrimaryButton } from '@/components/primary-button';
-import { StepDots } from '@/components/step-dots';
-import { colors, fonts, radii, spacing } from '@/theme';
+import { colors, fonts, radii } from '@/theme';
 
 type Props = {
   onGetStarted: () => void;
 };
 
-// Onboarding step 1 of 4 (docs/design/swipe-game-ui/README.md, "Welcome").
+// Onboarding step 1 of 4 (docs/design/swipe-game-ui/README.md, "Welcome"); OnboardingShell
+// supplies the padding and step dots.
 export function Welcome({ onGetStarted }: Props) {
   return (
-    <SafeAreaView style={styles.screen}>
-      <View style={styles.topRow}>
-        <StepDots count={4} active={0} />
-      </View>
-      <View style={styles.content}>
-        <View style={styles.hero}>
-          <View style={[styles.heroCard, styles.backCard]} />
-          <View style={[styles.heroCard, styles.frontCard]}>
-            <View style={styles.frame}>
-              <View style={styles.circle} />
-              <Text style={styles.word}>hola</Text>
-            </View>
+    <View style={styles.content}>
+      <View style={styles.hero}>
+        <View style={[styles.heroCard, styles.backCard]} />
+        <View style={[styles.heroCard, styles.frontCard]}>
+          <View style={styles.frame}>
+            <View style={styles.circle} />
+            <Text style={styles.word}>hola</Text>
           </View>
         </View>
-        <View style={styles.copy}>
-          <Text style={styles.title}>Learn Spanish one swipe at a time</Text>
-          <Text style={styles.body}>
-            See a Spanish word, tap for the English meaning, and swipe to sort it.
-          </Text>
-        </View>
-        <PrimaryButton label="Get started" onPress={onGetStarted} />
       </View>
-    </SafeAreaView>
+      <View style={styles.copy}>
+        <Text style={styles.title}>Learn Spanish one swipe at a time</Text>
+        <Text style={styles.body}>
+          See a Spanish word, tap for the English meaning, and swipe to sort it.
+        </Text>
+      </View>
+      <PrimaryButton label="Get started" onPress={onGetStarted} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingTop: 16,
-    paddingHorizontal: spacing.onboarding,
-    paddingBottom: 24,
-    gap: 20,
-  },
-  topRow: {
-    height: 36,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
   content: {
     flex: 1,
     gap: 28,

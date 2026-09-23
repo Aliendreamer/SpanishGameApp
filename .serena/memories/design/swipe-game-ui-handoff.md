@@ -15,10 +15,14 @@ The user designed the app UI in Claude Design and likes it. It is the reference 
 - One screen at a time, in flow order, each its own OpenSpec change.
 - Order: Welcome → Username → Level → How it works → swipe deck → ...
 - Welcome is done (change `welcome-screen`, archived 2026-09-23).
+- Username is done (change `username-screen`, archived 2026-09-23).
 
-**Carried-forward follow-ups for the Username change:**
-- Add `app/onboarding/_layout.tsx` owning the top row, dots, Back and padding, so the dots persist and animate between steps.
-- Guard "Get started" against a double tap.
+**How the onboarding screens are built:**
+- Routes live in `src/app/onboarding/`. `_layout.tsx` holds the ordered `STEPS` list of segment and href pairs, and wraps a Stack in `OnboardingShell`.
+- `OnboardingShell` (`src/screens/onboarding-shell/`) provides the dots, Back and padding.
+- Screens render only their content. Forward pushes use `{ dangerouslySingular: true }`.
+- User prefs go through `src/storage/prefs.ts` (AsyncStorage).
+- Level is currently a placeholder (`src/screens/level-placeholder`).
 
 **Open technical points:**
 - long real meanings vs the 36/800 meaning type on the card back

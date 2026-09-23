@@ -1,7 +1,6 @@
-import { router } from 'expo-router';
+import { Redirect } from 'expo-router';
 
-import { Welcome } from '@/screens/welcome';
-
-export default function WelcomeRoute() {
-  return <Welcome onGetStarted={() => router.push('/onboarding/username')} />;
+// Launch routing lands here; until onboarding is stored, every launch starts at Welcome.
+export default function StartRoute() {
+  return <Redirect href="/onboarding" />;
 }

@@ -1,9 +1,5 @@
-# onboarding Specification
+## MODIFIED Requirements
 
-## Purpose
-The first-launch flow: Welcome, then username, level, and tutorial steps (built one screen at a
-time), per docs/design/swipe-game-ui/.
-## Requirements
 ### Requirement: Welcome screen
 
 The app SHALL open on the Welcome screen at `/onboarding` (the `/` route redirects there), which
@@ -20,6 +16,15 @@ meaning, and swipe to sort it.", and a "Get started" button pinned to the bottom
 
 - **WHEN** the user taps "Get started"
 - **THEN** the app navigates to `/onboarding/username`
+
+## REMOVED Requirements
+
+### Requirement: Username placeholder
+
+**Reason**: The Username step is now built.
+**Migration**: `/onboarding/username` shows the Username step (see "Username step").
+
+## ADDED Requirements
 
 ### Requirement: Onboarding shell
 
@@ -100,4 +105,3 @@ the text "Level — coming next".
 
 - **WHEN** the app navigates to `/onboarding/level`
 - **THEN** the dots show step 3 of 4 and the screen reads "Level — coming next"
-

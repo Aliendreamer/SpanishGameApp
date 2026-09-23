@@ -9,6 +9,16 @@ describe('<PrimaryButton />', () => {
     expect(screen.getByRole('button', { name: 'Get started' })).toBeOnTheScreen();
   });
 
+  test('dimmed shows the button at half opacity but keeps it pressable', async () => {
+    const onPress = jest.fn();
+    await render(<PrimaryButton label="Continue" onPress={onPress} dimmed />);
+
+    const button = screen.getByRole('button', { name: 'Continue' });
+    expect(button).toHaveStyle({ opacity: 0.5 });
+    await fireEvent.press(button);
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
   test('calls onPress once when tapped', async () => {
     const onPress = jest.fn();
     await render(<PrimaryButton label="Get started" onPress={onPress} />);
