@@ -35,4 +35,4 @@ rules:
     - Capture the design agreed during superpowers brainstorming; do not reopen settled decisions
   tasks:
     - Write each task test-first (failing test, then implementation)
-    - Do not include commit steps; the user commits once the whole change is approved
+    - Do not include commit steps; the agent archives and commits once gates are green, and pushes only when the user says so

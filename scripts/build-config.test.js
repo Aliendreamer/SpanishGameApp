@@ -1,14 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const root = path.join(__dirname, '..');
-const lines = (file) =>
-  fs
-    .readFileSync(path.join(root, file), 'utf8')
-    .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => line && !line.startsWith('#'));
-const readJSON = (file) => JSON.parse(fs.readFileSync(path.join(root, file), 'utf8'));
+const { root, lines, readJSON } = require('./test-utils');
 
 describe('.easignore', () => {
   test('keeps the signing credentials out of cloud uploads', () => {

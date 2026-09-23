@@ -105,9 +105,15 @@ rules override the superpowers skills' defaults where they conflict:
 - **Semantic commits:** every commit follows Conventional Commits (use the
   `conventional-commits` skill). The version bump and changelog are derived from them, so the
   type (`feat`, `fix`, …) and any `BREAKING CHANGE` must be accurate.
+- **Hooks (husky, installed by `pnpm install`):** `commit-msg` runs commitlint
+  (`@commitlint/config-conventional`, `commitlint.config.js`) and rejects non-conventional
+  messages; `pre-commit` runs lint-staged (`eslint --fix` + `prettier --write` on staged files,
+  config in `package.json`), then `pnpm typecheck` and `pnpm test`. `expo:doctor` and
+  `check:pins` are not in the hook, so still run `pnpm check` before committing. Never bypass
+  the hooks with `--no-verify`.
 - **Changelog generation:** `CHANGELOG.md` is generated from commit history, never hand-edited.
-  The tool is not chosen yet — pick it (and optionally commitlint to enforce the format) when the
-  app is scaffolded, then record it here with its commands.
+  The tool is not chosen yet — pick it when the first release is prepared, then record it here
+  with its commands.
 
 <!-- setup-flow:start -->
 ## MANDATORY workflow
