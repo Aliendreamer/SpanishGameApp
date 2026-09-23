@@ -243,7 +243,7 @@ describe('launch routing', () => {
     await fireEvent.press(screen.getByRole('tab', { name: 'Words' }));
 
     expect(router.getPathname()).toBe('/words');
-    expect(screen.getByText('Words — coming next')).toBeOnTheScreen();
+    expect(await screen.findByRole('header', { name: 'My words' })).toBeOnTheScreen();
     expect(screen.getByRole('tab', { name: 'Words' })).toBeSelected();
   });
 
@@ -296,6 +296,29 @@ describe('launch routing', () => {
       expect(await mockDb.getFirstAsync('SELECT count(*) AS n FROM swipes')).toEqual({ n: 2 }),
     );
     expect(screen.queryByRole('header', { name: "It's a match!" })).toBeNull();
+  });
+
+  test('a word answered on Swipe shows first in Known on the Words tab', async () => {
+    await renderApp('/swipe', { ...done, showTutorial: false });
+    const card = await screen.findByRole('button', { name: /^Card:/ });
+    const lemma = String(card.props.accessibilityLabel).replace('Card: ', '');
+    await fireEvent.press(screen.getByRole('button', { name: 'I know it' }));
+    await waitFor(async () =>
+      expect(await mockDb.getFirstAsync('SELECT count(*) AS n FROM swipes')).toEqual({ n: 1 }),
+    );
+    await fireEvent.press(screen.getByRole('tab', { name: 'Words' }));
+
+    expect(await screen.findByRole('tab', { name: 'Known · 1' })).toBeSelected();
+    expect(await screen.findByText(new RegExp(`(^| )${lemma}$`))).toBeOnTheScreen();
+
+    await fireEvent.press(screen.getByRole('tab', { name: 'Still learning · 0' }));
+    expect(
+      await screen.findByText('Words you swipe left on show up here until you know them.'),
+    ).toBeOnTheScreen();
+
+    await fireEvent.press(screen.getByRole('tab', { name: 'Known · 1' }));
+    await fireEvent.changeText(screen.getByPlaceholderText('Search Spanish or English'), 'zzz');
+    expect(await screen.findByText('No words match your search.')).toBeOnTheScreen();
   });
 
   describe('Settings tab', () => {

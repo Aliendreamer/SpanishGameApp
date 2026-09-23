@@ -1,5 +1,6 @@
 import type { ProgressDb, Settings } from '@/storage/progress-db';
 import { KNOWN_KEYS } from '@/storage/swipes';
+import { articleFor } from '@/vocabulary/article';
 import { deckBands } from '@/vocabulary/levels';
 
 export const BATCH_SIZE = 100;
@@ -26,8 +27,6 @@ type WordRow = {
   cefr: string | null;
   frequency_rank: number;
 };
-
-const ARTICLES: Record<string, string> = { m: 'el', f: 'la', 'm/f': 'el/la' };
 
 // Words for the saved settings: level by level (unlevelled last), each level in frequency order —
 // the order the roadmap sets for dealing batches. Known words (latest swipe right) are left out
@@ -79,7 +78,7 @@ export async function getDeck(
   return rows.map((row) => ({
     key: row.key,
     lemma: row.spanish,
-    article: row.part_of_speech === 'noun' && row.gender ? (ARTICLES[row.gender] ?? null) : null,
+    article: articleFor(row.part_of_speech, row.gender),
     level: row.cefr,
     partOfSpeech: row.part_of_speech,
     rank: row.frequency_rank,

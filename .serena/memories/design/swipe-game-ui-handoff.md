@@ -43,7 +43,10 @@ The user designed the app UI in Claude Design and likes it. It is the reference 
 - Settings is done (change `settings-screen`, archived 2026-09-23).
   - Changes save at once, and the Swipe tab re-deals through the `DeckRefreshContext` in `src/state/deck-refresh.ts`.
   - Reset progress clears ONLY the swipe log (user decision). Username, tutorial, onboarding, level and batch settings stay.
-- Words and Progress tabs are placeholders (`src/screens/tab-placeholder`). NEXT: those, screen by screen.
+- Words is done (change `words-screen`, archived 2026-09-23).
+  - Lists are ordered most recently swiped first (user choice), queried in `src/vocabulary/word-lists.ts`, and refreshed on tab focus via `useFocusEffect`.
+- Progress tab is a placeholder. NEXT: Progress.
+- User feedback, not yet acted on: the match overlay feels too frequent. Candidate fixes are to celebrate only words learned across sessions, or to cap it to one every few cards.
 - Shared components: `Checkbox`, `ScreenFrame`, `StepHeading` (optional greeting and body).
 - Game settings live in `progress.db` (user chose SQLite now over AsyncStorage).
   - `src/storage/progress-db.ts`: migrations tracked by `PRAGMA user_version` and a one-row `settings` table.
