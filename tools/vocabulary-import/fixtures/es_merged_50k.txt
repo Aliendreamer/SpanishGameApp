@@ -1,0 +1,5 @@
+el	5000
+no	4500
+comer	1900
+iglesia	870
+buen	300

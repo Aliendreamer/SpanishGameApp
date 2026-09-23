@@ -74,6 +74,9 @@ Thumbs.db
 .claude/loop.md
 .claude/scheduled_tasks.json
 
+# Vocabulary build staging dirs (only left behind if a build is killed)
+assets/.vocabulary-staging-*
+
 # Signing credentials: decrypted in the working tree by git-crypt, never uploaded to EAS
 credentials.json
 credentials/

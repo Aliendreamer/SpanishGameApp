@@ -1,0 +1,49 @@
+_____
+el
+pos: art
+  gloss: the
+_____
+comer
+pos: v
+  gloss: to eat
+  gloss: to have lunch
+    q: Spain
+  gloss: to devour
+    q: obsolete
+_____
+casa
+pos: n
+  g: f
+  gloss: house
+  gloss: home
+_____
+él
+pos: pron
+  gloss: he, him
+_____
+banco
+pos: n
+  g: m
+  gloss: bank
+  gloss: bench
+_____
+antaño
+pos: adv
+  gloss: long ago
+    q: archaic
+_____
+no
+pos: adv
+  meta: {{head|es|adverb}}
+  gloss: not
+_____
+iglesia
+pos: n
+  meta: {{es-noun|f}}
+  g: f
+  gloss: church
+_____
+buen
+pos: adj
+  meta: {{head|es|adjective form|g=m|apocopate||standard form|bueno}}
+  gloss: apocopic form of "bueno"

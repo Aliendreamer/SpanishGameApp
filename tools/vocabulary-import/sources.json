@@ -1,0 +1,17 @@
+{
+  "doozan": {
+    "repo": "doozan/spanish_data",
+    "commit": "43c5aa2bdfc11c04b3ee44ea69e0a29957c1346a",
+    "files": ["frequency.csv", "es_merged_50k.txt", "es-en.data", "sentences.tsv"]
+  },
+  "cefr": {
+    "repo": "Talhakasikci/cefr-vocabulary-dataset",
+    "commit": "9bbb7aa6739d6ea87eeadaa47e7ea9babc2b002a",
+    "files": [
+      "vocab_json/es-A1.json",
+      "vocab_json/es-A2.json",
+      "vocab_json/es-B1.json",
+      "vocab_json/es-B2.json"
+    ]
+  }
+}

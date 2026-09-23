@@ -66,5 +66,18 @@
     "webp",
     "wiql",
     "workitem"
+  ],
+  "dictionaryDefinitions": [
+    {
+      "name": "vocabulary-import",
+      "path": "./tools/vocabulary-import/cspell-words.txt",
+      "addWords": true
+    }
+  ],
+  "overrides": [
+    {
+      "filename": ["tools/vocabulary-import/**", "openspec/**", "CLAUDE.md"],
+      "dictionaries": ["vocabulary-import"]
+    }
   ]
 }

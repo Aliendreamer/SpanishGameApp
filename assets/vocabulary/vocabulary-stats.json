@@ -1,0 +1,49 @@
+{
+  "datasetVersion": "bbdc9bada37fd7db",
+  "generatedAt": "2026-09-22T23:29:17.048Z",
+  "sources": {
+    "doozan": "43c5aa2bdfc11c04b3ee44ea69e0a29957c1346a",
+    "cefr": "9bbb7aa6739d6ea87eeadaa47e7ea9babc2b002a"
+  },
+  "totalWords": 19171,
+  "byPartOfSpeech": {
+    "adjective": 4195,
+    "adverb": 635,
+    "conjunction": 28,
+    "determiner": 55,
+    "interjection": 78,
+    "noun": 11084,
+    "numeral": 51,
+    "other": 6,
+    "preposition": 25,
+    "pronoun": 74,
+    "verb": 2940
+  },
+  "byLevel": {
+    "A1": 402,
+    "A2": 740,
+    "B1": 1316,
+    "B2": 1603,
+    "unclassified": 15110
+  },
+  "withExamples": 11834,
+  "withForms": 16289,
+  "dropped": {
+    "properNouns": 1782,
+    "noDictionaryPos": 5497,
+    "notVocabulary": 26,
+    "noMeanings": 43,
+    "duplicates": 1
+  },
+  "examples": {
+    "0": 7337,
+    "1": 2660,
+    "2": 1468,
+    "3": 7706
+  },
+  "keyDiff": {
+    "added": 32,
+    "removed": 687
+  },
+  "addedFromSurfaceList": 1492
+}

@@ -45,6 +45,16 @@ encrypted with git-crypt and excluded from EAS uploads by `.easignore`. `.easign
 `.gitignore` for EAS, so keep every `.gitignore` entry in it (a test checks). A local production
 build needs `android.versionCode` bumped in `app.json` by hand; EAS auto-increments its own.
 
+## Vocabulary data
+
+`pnpm vocab:build [--cefr]` (`tools/vocabulary-import/`, TypeScript run directly by Node 24, no
+build step) downloads the pinned sources from `tools/vocabulary-import/sources.json` into a temp dir,
+builds `assets/vocabulary/` (`vocabulary.db` for the app; `vocabulary.json`, stats, `IMPORT_REPORT.md`,
+`DATA-LICENSE.md` for review), and replaces that folder only if every stage succeeds. Read
+`IMPORT_REPORT.md` after every rebuild — its key diff lists words whose user progress an update
+would orphan. Generated files are committed; never hand-edit them. The tool has its own
+`tsconfig.json` (Node types, `.ts` import extensions); the app's excludes `tools/`.
+
 ## Layout and gotchas
 
 - `src/app` holds routes only; screen bodies live in `src/screens/<name>/`, reusable UI in

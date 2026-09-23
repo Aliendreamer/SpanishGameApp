@@ -8,6 +8,8 @@ context: |
   Dependencies are pinned to exact versions. Roadmap and agreed decisions: openspec/ROADMAP.md.
   Android builds: profiles development/preview/production via EAS cloud, eas build --local, or
   scripts/build-gradle.sh (no EAS); target/compile SDK 36; signing key backed up under git-crypt.
+  Vocabulary: pnpm vocab:build [--cefr] → assets/vocabulary/vocabulary.db (SQLite, keyed lemma|pos,
+  tables vocabulary/translations/word_forms/examples/metadata); ~19.8k Spanish→English words.
 
 # Project context (optional)
 # This is shown to AI when creating artifacts.
