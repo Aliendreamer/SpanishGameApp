@@ -58,7 +58,11 @@ would orphan. Generated files are committed; never hand-edit them. The tool has 
 ## Layout and gotchas
 
 - `src/app` holds routes only; screen bodies live in `src/screens/<name>/`, reusable UI in
-  `src/components`, helpers in `src/utils`. Tests sit next to the file they test. Import via `@/`.
+  `src/components`, helpers in `src/utils`. Tests sit next to the file they test, except route
+  tests: Expo Router bundles every file in `src/app`, so those go in `src/__tests__/app/`
+  (`scripts/routes-folder.test.js` enforces it). Import via `@/`. Jest never bundles, so after
+  touching routes also check
+  `EXPO_NO_TELEMETRY=1 CI=1 pnpm exec expo export --platform android --output-dir <tmp dir>`.
 - `pnpm doctor` is pnpm's own built-in command, not ours — the Expo check is `pnpm expo:doctor`.
 - Expo CLI telemetry writes `~/.expo`, which the agent sandbox blocks: run Expo commands with
   `EXPO_NO_TELEMETRY=1`. `expo:doctor` needs `exp.host` and `reactnative.directory` (allowed in
@@ -73,7 +77,7 @@ would orphan. Generated files are committed; never hand-edit them. The tool has 
 - Typed routes: `expo start` generates `.expo/types/router.d.ts` (gitignored); a headless
   `expo start` run by the agent did not refresh it. If `typecheck` rejects a new route as an
   unknown href, the file is stale: delete it (typecheck then treats hrefs as plain strings) and
-  let the next `pnpm start` regenerate it.
+  let the next `pnpm start` regenerate it. `expo export` also rewrites it stale.
 - Jest: `jest.setup.js` swaps in the worklets and Reanimated test mocks. Expo Router's
   `renderRouter` puts `getPathname` on the promise it returns, so keep that object and `await` it
   separately.
