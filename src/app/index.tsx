@@ -1,5 +1,7 @@
-import { Home } from '@/screens/home';
+import { router } from 'expo-router';
 
-export default function HomeRoute() {
-  return <Home />;
+import { Welcome } from '@/screens/welcome';
+
+export default function WelcomeRoute() {
+  return <Welcome onGetStarted={() => router.push('/onboarding/username')} />;
 }

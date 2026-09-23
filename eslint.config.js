@@ -10,7 +10,8 @@ module.exports = defineConfig([
   expoConfig,
   eslintConfigPrettier,
   {
-    ignores: ['dist/*', '.expo/*', '.claude/*', 'openspec/*', 'coverage/*'],
+    // docs/design holds the Claude Design prototype: generated reference code, not app code.
+    ignores: ['dist/*', '.expo/*', '.claude/*', 'openspec/*', 'coverage/*', 'docs/design/*'],
   },
   // Repo scripts, Expo config plugins, and their tests run in Node (CommonJS), not the app.
   {
@@ -18,7 +19,7 @@ module.exports = defineConfig([
     languageOptions: { globals: globals.node },
   },
   {
-    files: ['scripts/**/*.test.js', 'plugins/**/*.test.js'],
+    files: ['scripts/**/*.test.js', 'plugins/**/*.test.js', 'jest.setup.js'],
     languageOptions: { globals: globals.jest },
   },
 ]);

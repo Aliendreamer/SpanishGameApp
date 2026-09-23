@@ -2,6 +2,7 @@
 .serena/
 .expo/
 openspec/
+docs/design/
 assets/
 coverage/
 dist/

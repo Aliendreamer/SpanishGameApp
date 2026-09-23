@@ -35,6 +35,13 @@ describe('app config', () => {
   test('includes the development client', () => {
     expect(plugin('expo-dev-client')).toBeDefined();
   });
+
+  test('is light-only with the rose splash from the design', () => {
+    expect(exp.userInterfaceStyle).toBe('light');
+    expect(plugin('expo-splash-screen')[1]).toEqual(
+      expect.objectContaining({ backgroundColor: '#D6457A' }),
+    );
+  });
 });
 
 describe('eas.json', () => {

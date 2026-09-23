@@ -70,6 +70,13 @@ would orphan. Generated files are committed; never hand-edit them. The tool has 
   `minimumReleaseAge` (packages under 24 h old are refused). If an install trips that rule, re-resolve
   with `pnpm clean --lockfile && pnpm install` — don't add `minimumReleaseAgeExclude` entries.
 - pnpm 12 has no `-s` flag; use `pnpm <script>` or `pnpm --silent <script>`.
+- Typed routes: `expo start` generates `.expo/types/router.d.ts` (gitignored); a headless
+  `expo start` run by the agent did not refresh it. If `typecheck` rejects a new route as an
+  unknown href, the file is stale: delete it (typecheck then treats hrefs as plain strings) and
+  let the next `pnpm start` regenerate it.
+- Jest: `jest.setup.js` swaps in the worklets and Reanimated test mocks. Expo Router's
+  `renderRouter` puts `getPathname` on the promise it returns, so keep that object and `await` it
+  separately.
 
 ## OpenSpec
 
