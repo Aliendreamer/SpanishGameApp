@@ -7,18 +7,10 @@ Each step is its own OpenSpec change, approved and committed before the next sta
 
 1. **`app-skeleton`** — done (archived 2026-09-22).
 2. **`android-builds`** — done (archived 2026-09-22).
-3. **`vocabulary-import`** — `tools/vocabulary-import` (`pnpm vocab:build [--cefr]`): downloads pinned
-   Doozan files (+ CEFR when enabled) to a temp dir, builds `assets/vocabulary/vocabulary.db`
-   (+ review JSON, stats, report with key diff, data licence), replaces committed output only on
-   success, always deletes the downloads. ~17–18k lemmas (frequency list words with translations),
-   up to 5 meanings, forms, CEFR by lemma+POS (ambiguous → none), up to 3 Tatoeba example
-   sentences per word in their own table (parsed now, not shown by the app yet).
-   - Spanish → English only.
-   - CEFR is an **optional input behind a switch**: without it, levels fall back to Doozan
-     frequency bands, so the app never depends on the unlicensed CEFR dataset.
-   - Data licence notice: vocabulary CC-BY-SA (Wiktionary via Doozan), example sentences CC-BY
-     (Tatoeba) with per-sentence attribution. Ask the CEFR dataset author for a licence before any
-     Play Store upload.
+3. **`vocabulary-import`** — done (archived 2026-09-23). Spanish → English only; CEFR is an
+   optional input behind `--cefr` (without it, levels fall back to Doozan frequency bands).
+   Data licence: vocabulary CC-BY-SA (Wiktionary via Doozan), example sentences CC-BY (Tatoeba).
+   Ask the CEFR dataset author for a licence before any Play Store upload.
 4. **`swipe-game-ui`** — design and implement the game UI (see decisions below).
 
 Later: undo, streaks, statistics, English → Spanish, hints, topics, showing example sentences
