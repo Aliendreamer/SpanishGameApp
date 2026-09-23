@@ -94,9 +94,11 @@ rules override the superpowers skills' defaults where they conflict:
    `superpowers:executing-plans` or `superpowers:subagent-driven-development` unless the user asks;
    if they do, skip every commit step those skills prescribe.
 4. **Simplify, review, gates, report** — as in `developer-flow`.
-5. **Commit only on explicit approval.** No `git commit`, `git push`, or branch-finishing skill
-   until the user has manually verified the change and said to commit. Then `/opsx:archive`, and
-   make one Conventional Commit for the whole change (archived OpenSpec folder included).
+5. **Commit on the user's approval.** No `git commit`, `git push`, or branch-finishing skill
+   until the user has manually verified the change and approved it. Once every task is done and
+   the gates are green, an approval such as "looks great" is the go-ahead: run `/opsx:archive`
+   (with spec sync) and make one Conventional Commit for the whole change (archived OpenSpec
+   folder included), without asking again. Never push unless asked.
 
 ## Commits and changelog (decided)
 
