@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fireEvent, screen } from '@testing-library/react-native';
+import type { ReactNode } from 'react';
 import { router as appRouter } from 'expo-router';
 import { renderRouter } from 'expo-router/testing-library';
 
@@ -11,6 +12,10 @@ import WelcomeRoute from '@/app/onboarding/index';
 import HowItWorksRoute from '@/app/onboarding/how-it-works';
 import LevelRoute from '@/app/onboarding/level';
 import UsernameRoute from '@/app/onboarding/username';
+import SwipeRoute from '@/app/swipe';
+import TutorialRoute from '@/app/tutorial';
+import { LaunchContext } from '@/launch';
+import type { LaunchPrefs } from '@/storage/prefs';
 import { getSettings, migrate, saveSettings } from '@/storage/progress-db';
 
 // Routes read progress.db through useSQLiteContext(); give them a real, migrated in-memory one.
@@ -24,13 +29,21 @@ const routes = {
   'onboarding/username': UsernameRoute,
   'onboarding/level': LevelRoute,
   'onboarding/how-it-works': HowItWorksRoute,
+  tutorial: TutorialRoute,
+  swipe: SwipeRoute,
 };
+
+const firstLaunch: LaunchPrefs = { username: null, onboardingDone: false, showTutorial: true };
 
 // renderRouter adds getPathname to the promise that Testing Library 14's render returns, so keep
 // that object and await it separately; awaiting it (or returning it from an async function)
 // drops the helper.
-async function renderApp(initialUrl = '/') {
-  const router = renderRouter(routes, { initialUrl });
+// The root layout reads the launch prefs; here they come straight from `launch`.
+async function renderApp(initialUrl = '/', launch = firstLaunch) {
+  const wrapper = ({ children }: { children: ReactNode }) => (
+    <LaunchContext value={launch}>{children}</LaunchContext>
+  );
+  const router = renderRouter(routes, { initialUrl, wrapper });
   await router;
   return { router };
 }
@@ -128,5 +141,65 @@ describe('onboarding routes', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Back' }));
 
     expect(router.getPathname()).toBe('/onboarding/level');
+  });
+});
+
+describe('launch routing', () => {
+  const done: LaunchPrefs = { username: 'Ana', onboardingDone: true, showTutorial: true };
+
+  beforeEach(async () => {
+    await AsyncStorage.clear();
+    mockDb = openTestDb();
+    await migrate(mockDb);
+  });
+  afterEach(() => mockDb.close());
+
+  test('after onboarding, with the tutorial on, the app opens the Tutorial', async () => {
+    const { router } = await renderApp('/', done);
+
+    expect(router.getPathname()).toBe('/tutorial');
+    expect(screen.getByText('Hola, Ana')).toBeOnTheScreen();
+    expect(screen.getByRole('header', { name: 'How it works' })).toBeOnTheScreen();
+    expect(screen.queryByLabelText(/^Step /)).toBeNull();
+    expect(backLink()).toBeNull();
+  });
+
+  test('after onboarding, with the tutorial off, the app opens Swipe', async () => {
+    const { router } = await renderApp('/', { ...done, showTutorial: false });
+
+    expect(router.getPathname()).toBe('/swipe');
+    expect(screen.getByText('Swipe — coming next')).toBeOnTheScreen();
+  });
+
+  test('the Tutorial saves its checkbox and opens Swipe', async () => {
+    const { router } = await renderApp('/tutorial', done);
+
+    await fireEvent.press(
+      screen.getByRole('checkbox', { name: 'Show this screen when the app starts' }),
+    );
+    await fireEvent.press(screen.getByRole('button', { name: 'Start swiping' }));
+
+    expect(router.getPathname()).toBe('/swipe');
+    expect(await AsyncStorage.getItem('showTutorial')).toBe('false');
+  });
+
+  test('finishing onboarding saves the flags and lands on Swipe with no way back', async () => {
+    const { router } = await renderApp('/onboarding/level');
+
+    await fireEvent.press(await screen.findByRole('button', { name: 'Continue' }));
+    expect(router.getPathname()).toBe('/onboarding/how-it-works');
+    expect(
+      screen.getByRole('checkbox', { name: 'Show this screen when the app starts' }),
+    ).toBeChecked();
+
+    await fireEvent.press(
+      screen.getByRole('checkbox', { name: 'Show this screen when the app starts' }),
+    );
+    await fireEvent.press(screen.getByRole('button', { name: 'Start swiping' }));
+
+    expect(router.getPathname()).toBe('/swipe');
+    expect(appRouter.canGoBack()).toBe(false);
+    expect(await AsyncStorage.getItem('onboardingDone')).toBe('true');
+    expect(await AsyncStorage.getItem('showTutorial')).toBe('false');
   });
 });

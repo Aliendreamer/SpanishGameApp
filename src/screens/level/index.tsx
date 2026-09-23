@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { Checkbox } from '@/components/checkbox';
 import { PrimaryButton } from '@/components/primary-button';
 import { StepHeading } from '@/components/step-heading';
 import type { Settings } from '@/storage/progress-db';
@@ -45,19 +46,12 @@ export function LevelPicker({ initial, onContinue }: Props) {
           );
         })}
       </View>
-      <Pressable
-        accessibilityRole="checkbox"
-        accessibilityLabel="Include lower levels"
-        accessibilityState={{ checked: includeLower, disabled: lowerDisabled }}
+      <Checkbox
+        label="Include lower levels"
+        checked={includeLower}
         disabled={lowerDisabled}
-        onPress={() => setIncludeLower(!includeLower)}
-        style={[styles.checkRow, lowerDisabled && styles.checkRowDisabled]}
-      >
-        <View style={[styles.checkbox, includeLower && styles.checkboxChecked]}>
-          {includeLower && <Text style={styles.tick}>✓</Text>}
-        </View>
-        <Text style={styles.checkLabel}>Include lower levels</Text>
-      </Pressable>
+        onToggle={() => setIncludeLower(!includeLower)}
+      />
       <View style={styles.footer}>
         <PrimaryButton label="Continue" onPress={() => onContinue({ level, includeLower })} />
       </View>
@@ -116,39 +110,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.regular,
     fontSize: 14,
     color: colors.textSecondary,
-  },
-  checkRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 4,
-    paddingHorizontal: 2,
-  },
-  checkRowDisabled: {
-    opacity: 0.4,
-  },
-  checkbox: {
-    width: 22,
-    height: 22,
-    borderRadius: radii.checkbox,
-    borderWidth: 2,
-    borderColor: colors.rose,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkboxChecked: {
-    backgroundColor: colors.rose,
-  },
-  tick: {
-    fontFamily: fonts.extraBold,
-    fontSize: 14,
-    lineHeight: 18,
-    color: colors.surface,
-  },
-  checkLabel: {
-    fontFamily: fonts.medium,
-    fontSize: 16,
-    color: colors.ink,
   },
   footer: {
     marginTop: 'auto',

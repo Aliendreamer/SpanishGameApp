@@ -1,6 +1,9 @@
 import { Redirect } from 'expo-router';
+import { use } from 'react';
 
-// Launch routing lands here; until onboarding is stored, every launch starts at Welcome.
+import { LaunchContext, launchTarget } from '@/launch';
+
+// The first screen: Welcome until onboarding is done, then the Tutorial or Swipe.
 export default function StartRoute() {
-  return <Redirect href="/onboarding" />;
+  return <Redirect href={launchTarget(use(LaunchContext))} />;
 }

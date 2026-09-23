@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ScreenFrame } from '@/components/screen-frame';
 import { StepDots } from '@/components/step-dots';
-import { colors, fonts, spacing } from '@/theme';
+import { colors, fonts } from '@/theme';
 
 type Props = {
   // Zero-based index of the current step, out of `count`.
@@ -18,7 +18,7 @@ type Props = {
 // The route layout mounts it once, so the dots stay put and animate between steps.
 export function OnboardingShell({ step, count, showBack, onBack, children }: Props) {
   return (
-    <SafeAreaView style={styles.screen}>
+    <ScreenFrame>
       <View style={styles.topRow}>
         <StepDots count={count} active={step} />
         {showBack && (
@@ -28,19 +28,11 @@ export function OnboardingShell({ step, count, showBack, onBack, children }: Pro
         )}
       </View>
       <View style={styles.content}>{children}</View>
-    </SafeAreaView>
+    </ScreenFrame>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingTop: 16,
-    paddingHorizontal: spacing.onboarding,
-    paddingBottom: 24,
-    gap: 20,
-  },
   topRow: {
     height: 36,
     flexDirection: 'row',

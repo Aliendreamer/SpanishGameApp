@@ -4,17 +4,20 @@ import { colors, fonts } from '@/theme';
 
 type Props = {
   title: string;
-  body: string;
+  body?: string;
+  // A small line above the title, e.g. "Hola, Ana" on the launch tutorial.
+  greeting?: string;
 };
 
-// The title and short explanation at the top of each onboarding step after Welcome.
-export function StepHeading({ title, body }: Props) {
+// The title (and optional greeting and explanation) at the top of each step after Welcome.
+export function StepHeading({ title, body, greeting }: Props) {
   return (
     <View style={styles.heading}>
+      {greeting ? <Text style={styles.greeting}>{greeting}</Text> : null}
       <Text accessibilityRole="header" style={styles.title}>
         {title}
       </Text>
-      <Text style={styles.body}>{body}</Text>
+      {body ? <Text style={styles.body}>{body}</Text> : null}
     </View>
   );
 }
@@ -22,6 +25,11 @@ export function StepHeading({ title, body }: Props) {
 const styles = StyleSheet.create({
   heading: {
     gap: 8,
+  },
+  greeting: {
+    fontFamily: fonts.semiBold,
+    fontSize: 15,
+    color: colors.label,
   },
   title: {
     fontFamily: fonts.extraBold,

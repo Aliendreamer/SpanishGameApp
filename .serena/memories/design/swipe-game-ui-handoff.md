@@ -25,7 +25,14 @@ The user designed the app UI in Claude Design and likes it. It is the reference 
 - Back is set per step in `STEPS` (`back: true` from How it works on).
 - `PrimaryButton` ignores presses while an async `onPress` runs, via `src/utils/single-flight.ts`.
 - User prefs go through `src/storage/prefs.ts` (AsyncStorage).
-- Level is done (change `level-screen`, archived 2026-09-23). How it works is a placeholder (`src/screens/how-it-works-placeholder`).
+- Level is done (change `level-screen`, archived 2026-09-23).
+- How it works, the launch tutorial and launch routing are done (change `how-it-works-screen`, archived 2026-09-23). Onboarding is complete.
+- Launch routing:
+  - The root layout reads `getLaunchPrefs()` (AsyncStorage: username, onboardingDone, showTutorial) before hiding the splash, and shares the result via `LaunchContext` (`src/launch`).
+  - `/` redirects via `launchTarget()` to `/onboarding`, `/tutorial` or `/swipe`.
+  - `/tutorial` reuses the `HowItWorks` screen inside `ScreenFrame` with a greeting.
+- `/swipe` is a placeholder (`src/screens/swipe-placeholder`). NEXT: the swipe deck and the bottom tabs.
+- Shared components: `Checkbox`, `ScreenFrame`, `StepHeading` (optional greeting and body).
 - Game settings live in `progress.db` (user chose SQLite now over AsyncStorage).
   - `src/storage/progress-db.ts`: migrations tracked by `PRAGMA user_version` and a one-row `settings` table.
   - `SQLiteProvider` in the root layout; `onError` shows `StartupError`.
