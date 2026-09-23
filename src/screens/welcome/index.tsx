@@ -4,7 +4,7 @@ import { PrimaryButton } from '@/components/primary-button';
 import { colors, fonts, radii } from '@/theme';
 
 type Props = {
-  onGetStarted: () => void;
+  onGetStarted: () => void | Promise<void>;
 };
 
 // Onboarding step 1 of 4 (docs/design/swipe-game-ui/README.md, "Welcome"); OnboardingShell

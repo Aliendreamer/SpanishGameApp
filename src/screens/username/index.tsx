@@ -9,7 +9,7 @@ const MIN_LENGTH = 2;
 
 type Props = {
   // Called with the trimmed name, only when it is valid.
-  onSubmit: (name: string) => void;
+  onSubmit: (name: string) => void | Promise<void>;
 };
 
 // Onboarding step 2 of 4 (docs/design/swipe-game-ui/README.md, "Username").
@@ -21,9 +21,10 @@ export function Username({ onSubmit }: Props) {
   const valid = trimmed.length >= MIN_LENGTH;
   const showError = touched && !valid;
 
+  // Returns the submit promise so the button can ignore presses until it settles.
   const submit = () => {
-    if (valid) onSubmit(trimmed);
-    else setTouched(true);
+    if (valid) return onSubmit(trimmed);
+    setTouched(true);
   };
 
   return (

@@ -9,18 +9,19 @@ type Props = {
   // Zero-based index of the current step, out of `count`.
   step: number;
   count: number;
+  showBack: boolean;
   onBack: () => void;
   children: ReactNode;
 };
 
-// The frame every onboarding step shares: padding, step dots, and Back from step 2 on. The route
-// layout mounts it once, so the dots stay put and animate between steps.
-export function OnboardingShell({ step, count, onBack, children }: Props) {
+// The frame every onboarding step shares: padding, step dots, and Back where the step allows it.
+// The route layout mounts it once, so the dots stay put and animate between steps.
+export function OnboardingShell({ step, count, showBack, onBack, children }: Props) {
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.topRow}>
         <StepDots count={count} active={step} />
-        {step > 0 && (
+        {showBack && (
           <Pressable accessibilityRole="button" onPress={onBack} hitSlop={12}>
             <Text style={styles.back}>Back</Text>
           </Pressable>

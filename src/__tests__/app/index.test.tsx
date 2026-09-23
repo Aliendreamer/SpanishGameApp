@@ -1,6 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fireEvent, screen } from '@testing-library/react-native';
+import { router as appRouter } from 'expo-router';
 import { renderRouter } from 'expo-router/testing-library';
+import { Text } from 'react-native';
 
 import StartRoute from '@/app/index';
 import OnboardingLayout from '@/app/onboarding/_layout';
@@ -14,6 +16,8 @@ const routes = {
   'onboarding/index': WelcomeRoute,
   'onboarding/username': UsernameRoute,
   'onboarding/level': LevelRoute,
+  // Stand-in for step 4, the first step with Back, until How it works is built.
+  'onboarding/how-it-works': () => <Text>How it works</Text>,
 };
 
 // renderRouter adds getPathname to the promise that Testing Library 14's render returns, so keep
@@ -25,23 +29,28 @@ async function renderApp(initialUrl = '/') {
   return { router };
 }
 
+const backLink = () => screen.queryByRole('button', { name: 'Back' });
+
 describe('onboarding routes', () => {
   beforeEach(() => AsyncStorage.clear());
 
-  test('the start route opens Welcome as step 1', async () => {
+  test('the start route opens Welcome as step 1, with no Back', async () => {
     const { router } = await renderApp();
 
     expect(router.getPathname()).toBe('/onboarding');
     expect(screen.getByLabelText('Step 1 of 4')).toBeOnTheScreen();
     expect(screen.getByText('Learn Spanish one swipe at a time')).toBeOnTheScreen();
+    expect(backLink()).toBeNull();
   });
 
-  test('Welcome → Username → saved → Level', async () => {
+  test('Welcome → Username → saved → Level, with no way back', async () => {
     const { router } = await renderApp();
 
     await fireEvent.press(screen.getByRole('button', { name: 'Get started' }));
     expect(router.getPathname()).toBe('/onboarding/username');
     expect(screen.getByLabelText('Step 2 of 4')).toBeOnTheScreen();
+    expect(backLink()).toBeNull();
+    expect(appRouter.canGoBack()).toBe(false);
 
     await fireEvent.changeText(screen.getByPlaceholderText('Username'), '  Ana  ');
     await fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
@@ -49,27 +58,36 @@ describe('onboarding routes', () => {
     expect(router.getPathname()).toBe('/onboarding/level');
     expect(screen.getByLabelText('Step 3 of 4')).toBeOnTheScreen();
     expect(screen.getByText('Level — coming next')).toBeOnTheScreen();
+    expect(backLink()).toBeNull();
+    expect(appRouter.canGoBack()).toBe(false);
     expect(await AsyncStorage.getItem('username')).toBe('Ana');
   });
 
-  test('Back returns to the previous step, even after a double tap forward', async () => {
+  test('Get started skips Username when a username is already saved', async () => {
+    await AsyncStorage.setItem('username', 'Ana');
+    const { router } = await renderApp();
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Get started' }));
+
+    expect(router.getPathname()).toBe('/onboarding/level');
+  });
+
+  test('a double tap on Get started still leaves no history', async () => {
     const { router } = await renderApp();
 
     const getStarted = screen.getByRole('button', { name: 'Get started' });
     await fireEvent.press(getStarted);
     await fireEvent.press(getStarted);
+
     expect(router.getPathname()).toBe('/onboarding/username');
-
-    await fireEvent.press(screen.getByRole('button', { name: 'Back' }));
-
-    expect(router.getPathname()).toBe('/onboarding');
+    expect(appRouter.canGoBack()).toBe(false);
   });
 
-  test('Back works on a step opened directly, with no history', async () => {
-    const { router } = await renderApp('/onboarding/level');
+  test('Back on a step opened directly goes to the previous step', async () => {
+    const { router } = await renderApp('/onboarding/how-it-works');
 
     await fireEvent.press(screen.getByRole('button', { name: 'Back' }));
 
-    expect(router.getPathname()).toBe('/onboarding/username');
+    expect(router.getPathname()).toBe('/onboarding/level');
   });
 });

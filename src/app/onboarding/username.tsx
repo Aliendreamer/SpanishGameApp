@@ -9,7 +9,8 @@ export default function UsernameRoute() {
       onSubmit={async (name) => {
         // A failed save must not trap the user in onboarding; the name can be set again later.
         await saveUsername(name).catch(() => {});
-        router.push('/onboarding/level', { dangerouslySingular: true });
+        // Replace: onboarding never returns to Username.
+        router.replace('/onboarding/level');
       }}
     />
   );

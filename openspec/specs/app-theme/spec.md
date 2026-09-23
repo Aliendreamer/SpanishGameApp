@@ -42,12 +42,19 @@ The app SHALL use a light appearance only, and its splash background SHALL be `#
 ### Requirement: Primary button
 
 `PrimaryButton` SHALL render a full-width pill (height 58, rose background, cream 17/800 label)
-that darkens to the pressed colour while pressed and calls `onPress` when tapped.
+that darkens to the pressed colour while pressed and calls `onPress` when tapped. With `dimmed`
+it SHALL show at 50% opacity and stay pressable. While an asynchronous `onPress` is still running,
+further presses SHALL be ignored.
 
 #### Scenario: Press
 
 - **WHEN** the user taps the button
 - **THEN** `onPress` is called once
+
+#### Scenario: Double tap during an async action
+
+- **WHEN** the user taps twice while the first tap's save or navigation is still running
+- **THEN** the action runs once
 
 ### Requirement: Step dots
 
@@ -58,3 +65,4 @@ dots rose, upcoming dots `#EFBCCD`, with width changes animated over 300 ms.
 
 - **WHEN** `StepDots` renders with 4 steps and step 1 active
 - **THEN** the first dot is wide and rose and the other three are narrow and `#EFBCCD`
+

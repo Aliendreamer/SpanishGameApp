@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { saveUsername } from '@/storage/prefs';
+import { getUsername, saveUsername } from '@/storage/prefs';
 
 describe('prefs', () => {
   beforeEach(() => AsyncStorage.clear());
@@ -9,5 +9,13 @@ describe('prefs', () => {
     await saveUsername('  Ana  ');
 
     expect(await AsyncStorage.getItem('username')).toBe('Ana');
+  });
+
+  test('getUsername returns the saved name, or null when there is none', async () => {
+    expect(await getUsername()).toBeNull();
+
+    await saveUsername('Ana');
+
+    expect(await getUsername()).toBe('Ana');
   });
 });

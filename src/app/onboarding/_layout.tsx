@@ -4,12 +4,13 @@ import { colors } from '@/theme';
 import { OnboardingShell } from '@/screens/onboarding-shell';
 
 // Onboarding steps in order. The current route segment picks the active dot (`onboarding` is the
-// group's index, Welcome); steps not built yet still count toward the dots.
-const STEPS: { segment: string; href: Href }[] = [
-  { segment: 'onboarding', href: '/onboarding' },
-  { segment: 'username', href: '/onboarding/username' },
-  { segment: 'level', href: '/onboarding/level' },
-  { segment: 'how-it-works', href: '/onboarding/how-it-works' },
+// group's index, Welcome); steps not built yet still count toward the dots. Onboarding only moves
+// forward through Welcome, Username, and Level, so Back starts at How it works.
+const STEPS: { segment: string; href: Href; back: boolean }[] = [
+  { segment: 'onboarding', href: '/onboarding', back: false },
+  { segment: 'username', href: '/onboarding/username', back: false },
+  { segment: 'level', href: '/onboarding/level', back: false },
+  { segment: 'how-it-works', href: '/onboarding/how-it-works', back: true },
 ];
 
 export default function OnboardingLayout() {
@@ -27,7 +28,7 @@ export default function OnboardingLayout() {
   };
 
   return (
-    <OnboardingShell step={step} count={STEPS.length} onBack={goBack}>
+    <OnboardingShell step={step} count={STEPS.length} showBack={STEPS[step].back} onBack={goBack}>
       <Stack
         screenOptions={{
           headerShown: false,
