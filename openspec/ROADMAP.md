@@ -11,9 +11,13 @@ Each step is its own OpenSpec change, approved and committed before the next sta
    optional input behind `--cefr` (without it, levels fall back to Doozan frequency bands).
    Data licence: vocabulary CC-BY-SA (Wiktionary via Doozan), example sentences CC-BY (Tatoeba).
    Ask the CEFR dataset author for a licence before any Play Store upload.
-4. **`swipe-game-ui`** — design and implement the game UI (see decisions below).
+4. **`swipe-game-ui`** — done (2026-09-23), built from the Claude Design handoff in
+   `docs/design/swipe-game-ui/` as separate changes: `welcome-screen`, `username-screen`,
+   `onboarding-forward-only`, `level-screen`, `how-it-works-screen`, `swipe-card`, `swipe-gestures`,
+   `game-rules`, `match-overlay`, `settings-screen`, `words-screen`, `progress-screen`. Streaks and
+   statistics (listed as later below) came with the Progress tab.
 
-Later: undo, streaks, statistics, English → Spanish, hints, topics, showing example sentences
+Later: undo, English → Spanish, hints, topics, showing example sentences
 (format and UI to be decided — e.g. browsing a word's up-to-3 sentences on the flipped card).
 
 ## Decisions agreed for step 4
