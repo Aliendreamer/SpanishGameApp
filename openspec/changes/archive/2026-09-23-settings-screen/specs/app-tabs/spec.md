@@ -1,8 +1,5 @@
-# app-tabs Specification
+## MODIFIED Requirements
 
-## Purpose
-TBD - created by archiving change swipe-card. Update Purpose after archive.
-## Requirements
 ### Requirement: Bottom tab bar
 
 After onboarding the app SHALL show a bottom tab bar with four text-only tabs — Swipe, Words,
@@ -18,4 +15,3 @@ cream text, the others have muted text. Words and Progress SHALL show placeholde
 
 - **WHEN** the Progress tab is shown
 - **THEN** it reads "Progress — coming next"
-

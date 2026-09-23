@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Checkbox } from '@/components/checkbox';
 import { PrimaryButton } from '@/components/primary-button';
+import { RadioMark } from '@/components/settings-rows';
 import { StepHeading } from '@/components/step-heading';
 import type { Settings } from '@/storage/progress-db';
 import { colors, fonts, radii } from '@/theme';
@@ -37,7 +38,7 @@ export function LevelPicker({ initial, onContinue }: Props) {
               onPress={() => setLevel(id)}
               style={[styles.option, selected && styles.optionSelected]}
             >
-              <View style={styles.radio}>{selected && <View style={styles.radioDot} />}</View>
+              <RadioMark selected={selected} />
               <View style={styles.optionText}>
                 <Text style={styles.optionLabel}>{label}</Text>
                 <Text style={styles.optionDetail}>{detail}</Text>
@@ -81,21 +82,6 @@ const styles = StyleSheet.create({
   optionSelected: {
     borderColor: colors.rose,
     backgroundColor: colors.surface,
-  },
-  radio: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: colors.rose,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  radioDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: colors.rose,
   },
   optionText: {
     flex: 1,

@@ -80,7 +80,8 @@ would orphan. Generated files are committed; never hand-edit them. The tool has 
   let the next `pnpm start` regenerate it. `expo export` also rewrites it stale.
 - Jest: `jest.setup.js` swaps in the worklets and Reanimated test mocks. Expo Router's
   `renderRouter` puts `getPathname` on the promise it returns, so keep that object and `await` it
-  separately.
+  separately. `renderRouter` also turns on fake timers, under which a `waitFor` makes the router
+  ignore later `router.push` calls: navigate first, then assert on storage.
 
 ## OpenSpec
 

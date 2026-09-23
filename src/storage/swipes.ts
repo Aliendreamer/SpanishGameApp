@@ -36,3 +36,9 @@ export async function knownKeys(db: ProgressDb): Promise<Set<string>> {
   const rows = await db.getAllAsync<{ key: string }>(KNOWN_KEYS);
   return new Set(rows.map((row) => row.key));
 }
+
+// "Reset progress": forget every answer, so every word is unknown again. Settings, the username,
+// and onboarding are kept (they live elsewhere).
+export async function clearSwipes(db: ProgressDb): Promise<void> {
+  await db.execAsync('DELETE FROM swipes');
+}

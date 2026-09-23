@@ -25,6 +25,8 @@ describe('theme', () => {
       onRoseSoft: '#FDE3EB',
       frameOnRose: 'rgba(255, 246, 248, 0.55)',
       placeholder: '#A8708A',
+      bodyStrong: '#5A2A3E',
+      scrim: 'rgba(59, 22, 36, 0.45)',
     });
   });
 

@@ -71,11 +71,25 @@ export async function getSettings(db: ProgressDb): Promise<Settings> {
   };
 }
 
+// Column for each setting. Only the given ones are written, in one statement, so saves made at the
+// same time can't undo each other (a read-then-write would).
+const COLUMNS: Record<keyof Settings, string> = {
+  level: 'level',
+  includeLower: 'include_lower',
+  includeKnown: 'include_known',
+};
+
 export async function saveSettings(db: ProgressDb, changes: Partial<Settings>): Promise<void> {
-  const current = await getSettings(db);
-  const next = { ...current, ...changes };
+  const entries = (Object.keys(changes) as (keyof Settings)[]).filter(
+    (name) => changes[name] !== undefined,
+  );
+  if (entries.length === 0) return;
+  const values = entries.map((name) => {
+    const value = changes[name];
+    return typeof value === 'boolean' ? (value ? 1 : 0) : (value as string);
+  });
   await db.runAsync(
-    'UPDATE settings SET level = ?, include_lower = ?, include_known = ? WHERE id = 1',
-    [next.level, next.includeLower ? 1 : 0, next.includeKnown ? 1 : 0],
+    `UPDATE settings SET ${entries.map((name) => `${COLUMNS[name]} = ?`).join(', ')} WHERE id = 1`,
+    values,
   );
 }

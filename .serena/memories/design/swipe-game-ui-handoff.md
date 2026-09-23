@@ -40,9 +40,10 @@ The user designed the app UI in Claude Design and likes it. It is the reference 
   - The dictionary is attached to progress.db as `vocab`.
   - The deck is dealt by `getDeck` / `dealBatch` (`src/vocabulary/deck.ts`).
   - Queue rules live in `src/vocabulary/queue.ts`; the swipe log in `src/storage/swipes.ts`.
-- Words, Progress and Settings tabs are placeholders (`src/screens/tab-placeholder`).
-- NEXT: those tabs, screen by screen.
-- Follow-up for Settings: the Swipe tab reads settings once on mount; it must re-deal when settings change.
+- Settings is done (change `settings-screen`, archived 2026-09-23).
+  - Changes save at once, and the Swipe tab re-deals through the `DeckRefreshContext` in `src/state/deck-refresh.ts`.
+  - Reset progress clears ONLY the swipe log (user decision). Username, tutorial, onboarding, level and batch settings stay.
+- Words and Progress tabs are placeholders (`src/screens/tab-placeholder`). NEXT: those, screen by screen.
 - Shared components: `Checkbox`, `ScreenFrame`, `StepHeading` (optional greeting and body).
 - Game settings live in `progress.db` (user chose SQLite now over AsyncStorage).
   - `src/storage/progress-db.ts`: migrations tracked by `PRAGMA user_version` and a one-row `settings` table.

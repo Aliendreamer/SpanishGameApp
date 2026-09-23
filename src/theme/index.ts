@@ -27,6 +27,10 @@ export const colors = {
   // The thin inner frame on rose cards: surface at 55%.
   frameOnRose: 'rgba(255, 246, 248, 0.55)',
   placeholder: '#A8708A',
+  // Body text on cream sheets (credits).
+  bodyStrong: '#5A2A3E',
+  // The dimmed backdrop behind a bottom sheet: ink at 45%.
+  scrim: 'rgba(59, 22, 36, 0.45)',
 } as const;
 
 export const radii = {

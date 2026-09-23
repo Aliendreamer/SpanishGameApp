@@ -1,25 +1,40 @@
 import { router } from 'expo-router';
-import { use } from 'react';
+import { useEffect, useState } from 'react';
 
 import { ScreenFrame } from '@/components/screen-frame';
-import { LaunchContext } from '@/launch';
 import { HowItWorks } from '@/screens/how-it-works';
-import { saveShowTutorial } from '@/storage/prefs';
+import { FIRST_LAUNCH, getLaunchPrefs, type LaunchPrefs, saveShowTutorial } from '@/storage/prefs';
 
-// How it works on later launches: no step dots, no Back, a greeting.
+// How it works on later launches and from Settings: no step dots, no Back, a greeting.
 export default function TutorialRoute() {
-  const { username, showTutorial } = use(LaunchContext);
+  const [prefs, setPrefs] = useState<LaunchPrefs | null>(null);
+
+  // Syncs with AsyncStorage: read fresh (not the launch-time context), so a name or tutorial
+  // choice changed in Settings shows here.
+  useEffect(() => {
+    let active = true;
+    getLaunchPrefs()
+      .catch(() => FIRST_LAUNCH)
+      .then((loaded) => {
+        if (active) setPrefs(loaded);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <ScreenFrame>
-      <HowItWorks
-        greeting={username ? `Hola, ${username}` : undefined}
-        initialShowTutorial={showTutorial}
-        onStart={async (show) => {
-          await saveShowTutorial(show).catch(() => {});
-          router.replace('/swipe');
-        }}
-      />
+      {prefs && (
+        <HowItWorks
+          greeting={prefs.username ? `Hola, ${prefs.username}` : undefined}
+          initialShowTutorial={prefs.showTutorial}
+          onStart={async (show) => {
+            await saveShowTutorial(show).catch(() => {});
+            router.replace('/swipe');
+          }}
+        />
+      )}
     </ScreenFrame>
   );
 }

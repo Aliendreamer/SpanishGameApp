@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
 import { router as appRouter } from 'expo-router';
 import { renderRouter } from 'expo-router/testing-library';
@@ -182,10 +182,11 @@ describe('launch routing', () => {
   afterEach(() => mockDb.close());
 
   test('after onboarding, with the tutorial on, the app opens the Tutorial', async () => {
+    await AsyncStorage.setItem('username', 'Ana');
     const { router } = await renderApp('/', done);
 
     expect(router.getPathname()).toBe('/tutorial');
-    expect(screen.getByText('Hola, Ana')).toBeOnTheScreen();
+    expect(await screen.findByText('Hola, Ana')).toBeOnTheScreen();
     expect(screen.getByRole('header', { name: 'How it works' })).toBeOnTheScreen();
     expect(screen.queryByLabelText(/^Step /)).toBeNull();
     expect(backLink()).toBeNull();
@@ -295,5 +296,87 @@ describe('launch routing', () => {
       expect(await mockDb.getFirstAsync('SELECT count(*) AS n FROM swipes')).toEqual({ n: 2 }),
     );
     expect(screen.queryByRole('header', { name: "It's a match!" })).toBeNull();
+  });
+
+  describe('Settings tab', () => {
+    const openSettingsFromSwipe = async () => {
+      const app = await renderApp('/swipe', { ...done, showTutorial: false });
+      await screen.findByRole('button', { name: /^Card:/ });
+      await fireEvent.press(screen.getByRole('tab', { name: 'Settings' }));
+      return app;
+    };
+
+    test('a new level is saved and the Swipe tab deals for it', async () => {
+      await openSettingsFromSwipe();
+
+      await fireEvent.press(await screen.findByRole('radio', { name: /^Intermediate/ }));
+      await fireEvent.press(screen.getByRole('switch', { name: 'Include lower levels' }));
+      await waitFor(async () =>
+        expect(await getSettings(mockDb)).toEqual(
+          expect.objectContaining({ level: 'intermediate', includeLower: false }),
+        ),
+      );
+      await fireEvent.press(screen.getByRole('tab', { name: 'Swipe' }));
+
+      expect(await screen.findByText(/^Intermediate · /)).toBeOnTheScreen();
+      // The cards are dealt for the new settings too (B1 only), not just the header.
+      expect(await screen.findByText('B1')).toBeOnTheScreen();
+    });
+
+    test('Reset progress clears the swipe log and keeps the settings', async () => {
+      await renderApp('/swipe', { ...done, showTutorial: false });
+      await screen.findByRole('button', { name: /^Card:/ });
+      await fireEvent.press(screen.getByRole('button', { name: 'I know it' }));
+      await waitFor(async () =>
+        expect(await mockDb.getFirstAsync('SELECT count(*) AS n FROM swipes')).toEqual({ n: 1 }),
+      );
+      await fireEvent.press(screen.getByRole('tab', { name: 'Settings' }));
+
+      await fireEvent.press(await screen.findByRole('button', { name: 'Reset progress' }));
+      await fireEvent.press(screen.getByRole('button', { name: 'Tap again to reset' }));
+
+      expect(await screen.findByText('Progress reset')).toBeOnTheScreen();
+      expect(await mockDb.getFirstAsync('SELECT count(*) AS n FROM swipes')).toEqual({ n: 0 });
+      expect((await getSettings(mockDb)).level).toBe('beginner');
+      await fireEvent.press(screen.getByRole('tab', { name: 'Swipe' }));
+      expect(await screen.findByText('0 / 100')).toBeOnTheScreen();
+    });
+
+    test('a tutorial choice made in the tutorial shows back in Settings', async () => {
+      await renderApp('/settings', { ...done, showTutorial: true });
+      await act(async () => {}); // settings loaded
+      await fireEvent.press(screen.getByRole('button', { name: 'View tutorial now' }));
+      await act(async () => {}); // tutorial prefs loaded
+      await fireEvent.press(
+        screen.getByRole('checkbox', { name: 'Show this screen when the app starts' }),
+      );
+      await fireEvent.press(screen.getByRole('button', { name: 'Start swiping' }));
+      await fireEvent.press(screen.getByRole('tab', { name: 'Settings' }));
+
+      expect(
+        await screen.findByRole('switch', { name: 'Show tutorial at start' }),
+      ).not.toBeChecked();
+    });
+
+    test('the username and tutorial choice are saved, and the tutorial opens with them', async () => {
+      await AsyncStorage.setItem('username', 'Ana');
+      const { router } = await renderApp('/settings', { ...done, showTutorial: true });
+
+      const field = await screen.findByPlaceholderText('Username');
+      await fireEvent.changeText(field, 'Bea');
+      await fireEvent(field, 'submitEditing');
+      await fireEvent.press(screen.getByRole('switch', { name: 'Show tutorial at start' }));
+      // Navigate before any waitFor: under renderRouter's fake timers, a waitFor leaves the router
+      // ignoring later pushes (see CLAUDE.md).
+      await fireEvent.press(screen.getByRole('button', { name: 'View tutorial now' }));
+
+      expect(router.getPathname()).toBe('/tutorial');
+      expect(await screen.findByText('Hola, Bea')).toBeOnTheScreen();
+      expect(await AsyncStorage.getItem('username')).toBe('Bea');
+      expect(await AsyncStorage.getItem('showTutorial')).toBe('false');
+      expect(
+        screen.getByRole('checkbox', { name: 'Show this screen when the app starts' }),
+      ).not.toBeChecked();
+    });
   });
 });

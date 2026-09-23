@@ -4,9 +4,7 @@ import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { PrimaryButton } from '@/components/primary-button';
 import { StepHeading } from '@/components/step-heading';
 import { colors, fonts, radii } from '@/theme';
-
-const MAX_LENGTH = 20;
-const MIN_LENGTH = 2;
+import { isValidUsername, USERNAME_MAX, USERNAME_MIN } from '@/utils/username';
 
 type Props = {
   // Called with the trimmed name, only when it is valid.
@@ -19,7 +17,7 @@ export function Username({ onSubmit }: Props) {
   // The error waits until the user types or presses Continue, as in the prototype.
   const [touched, setTouched] = useState(false);
   const trimmed = name.trim();
-  const valid = trimmed.length >= MIN_LENGTH;
+  const valid = isValidUsername(name);
   const showError = touched && !valid;
 
   // Returns the submit promise so the button can ignore presses until it settles.
@@ -42,7 +40,7 @@ export function Username({ onSubmit }: Props) {
             setTouched(true);
           }}
           onSubmitEditing={submit}
-          maxLength={MAX_LENGTH}
+          maxLength={USERNAME_MAX}
           placeholder="Username"
           placeholderTextColor={colors.placeholder}
           autoFocus
@@ -54,9 +52,9 @@ export function Username({ onSubmit }: Props) {
         />
         <View style={styles.meta}>
           <Text style={styles.error}>
-            {showError ? `Use at least ${MIN_LENGTH} characters` : ''}
+            {showError ? `Use at least ${USERNAME_MIN} characters` : ''}
           </Text>
-          <Text style={styles.count}>{`${name.length} / ${MAX_LENGTH}`}</Text>
+          <Text style={styles.count}>{`${name.length} / ${USERNAME_MAX}`}</Text>
         </View>
       </View>
       <View style={styles.footer}>

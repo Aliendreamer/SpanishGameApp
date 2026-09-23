@@ -1,7 +1,7 @@
 import { openTestDb, type TestDb } from '../../scripts/node-sqlite-db';
 
 import { getSettings, migrate, MIGRATIONS, saveSettings } from '@/storage/progress-db';
-import { knownKeys, logSwipe } from '@/storage/swipes';
+import { clearSwipes, knownKeys, logSwipe } from '@/storage/swipes';
 
 let db: TestDb;
 
@@ -48,6 +48,18 @@ describe('swipe log', () => {
     await logSwipe(db, 'mesa|noun', false);
 
     expect(await knownKeys(db)).toEqual(new Set(['casa|noun']));
+  });
+});
+
+describe('clearSwipes', () => {
+  test('empties the swipe log and leaves the settings alone', async () => {
+    await saveSettings(db, { level: 'advanced' });
+    await logSwipe(db, 'casa|noun', true);
+
+    await clearSwipes(db);
+
+    expect(await knownKeys(db)).toEqual(new Set());
+    expect((await getSettings(db)).level).toBe('advanced');
   });
 });
 

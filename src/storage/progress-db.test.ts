@@ -51,4 +51,17 @@ describe('settings', () => {
       includeKnown: false,
     });
   });
+
+  test('changes saved at the same time all land', async () => {
+    await Promise.all([
+      saveSettings(db, { level: 'intermediate' }),
+      saveSettings(db, { includeKnown: true }),
+    ]);
+
+    expect(await getSettings(db)).toEqual({
+      level: 'intermediate',
+      includeLower: true,
+      includeKnown: true,
+    });
+  });
 });
