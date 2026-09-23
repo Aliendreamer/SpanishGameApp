@@ -1,45 +1,4 @@
-# swipe-deck Specification
-
-## Purpose
-TBD - created by archiving change swipe-card. Update Purpose after archive.
-## Requirements
-### Requirement: Deck of words
-
-The Swipe tab SHALL deal up to 100 words matching the saved level settings — Beginner A1 and A2,
-Intermediate B1, Advanced B2, Full every word; with "include lower levels", also the levels below —
-ordered by CEFR level, then frequency rank, with words that have no level last. Each word SHALL
-carry its article (nouns: "el", "la", or "el/la" from gender), level, part of speech, up to 3
-meanings in priority order, and its first example sentence if it has one.
-
-#### Scenario: Beginner deck
-
-- **WHEN** the level is Beginner
-- **THEN** the deck holds up to 100 A1 and A2 words, A1 first, each level in frequency order
-
-#### Scenario: Lower levels included
-
-- **WHEN** the level is Intermediate and "include lower levels" is on
-- **THEN** the deck holds A1, A2, and B1 words
-
-#### Scenario: Words can't be loaded
-
-- **WHEN** reading the settings or the dictionary fails
-- **THEN** the Swipe tab shows the full-screen "Something went wrong" message
-
-#### Scenario: Full
-
-- **WHEN** the level is Full
-- **THEN** words without a CEFR level come after all levelled words
-
-### Requirement: Swipe header
-
-The Swipe tab SHALL show a header with the level line (e.g. "Beginner · A1, A2"), "Hola,
-{username}", and the batch progress as "known / batch size" with a progress ring.
-
-#### Scenario: Progress counts known answers
-
-- **WHEN** the user answers "I know it" on 2 of the first 3 cards of a 100-word batch
-- **THEN** the header reads "2 / 100"
+## MODIFIED Requirements
 
 ### Requirement: Word card
 
@@ -63,6 +22,8 @@ card is left.
 
 - **WHEN** the user presses "I know it" on the first card
 - **THEN** the second card is shown front-side up and the known count is 1
+
+## ADDED Requirements
 
 ### Requirement: Swipe to answer
 
@@ -96,4 +57,3 @@ learning" stamp (ink, top-right) on a left drag, reaching full opacity at 90 dp.
 
 - **WHEN** the card is dragged 45 dp to the right
 - **THEN** the "I know it" stamp is at half opacity and "Still learning" is hidden
-

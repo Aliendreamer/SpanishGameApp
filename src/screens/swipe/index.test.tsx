@@ -15,10 +15,16 @@ const word = (lemma: string, meaning: string): DeckWord => ({
 });
 const words = [word('casa', 'house'), word('mesa', 'table'), word('silla', 'chair')];
 
+// Reanimated's official mock finishes animations at once, so answers land immediately.
+jest.mock('react-native-reanimated', () => jest.requireActual('react-native-reanimated/mock'));
+
 async function renderSwipe(deck = words) {
   await render(<Swipe levelLine="Beginner · A1, A2" username="Ana" words={deck} />);
 }
 const card = () => screen.getByRole('button', { name: /^Card:/ });
+// A tap on the card, through the accessibility action the gesture's tap mirrors.
+const tapCard = () =>
+  fireEvent(card(), 'accessibilityAction', { nativeEvent: { actionName: 'activate' } });
 const progress = () => screen.getByRole('progressbar');
 
 describe('<Swipe />', () => {
@@ -35,7 +41,7 @@ describe('<Swipe />', () => {
     await renderSwipe();
 
     expect(screen.getByText('Tap to see the meaning')).toBeOnTheScreen();
-    await fireEvent.press(card());
+    await tapCard();
 
     expect(screen.getByText('house')).toBeOnTheScreen();
     expect(screen.queryByText('Tap to see the meaning')).toBeNull();
@@ -44,7 +50,7 @@ describe('<Swipe />', () => {
   test('"I know it" counts the word and shows the next card front-side up', async () => {
     await renderSwipe();
 
-    await fireEvent.press(card());
+    await tapCard();
     await fireEvent.press(screen.getByRole('button', { name: 'I know it' }));
 
     expect(screen.getByText('mesa')).toBeOnTheScreen();

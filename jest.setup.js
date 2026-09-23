@@ -13,3 +13,6 @@ jest.mock(
   'react-native-safe-area-context',
   () => require('react-native-safe-area-context/jest/mock').default,
 );
+
+// Gesture Handler's own Jest setup (mocks its native module).
+require('react-native-gesture-handler/jestSetup');

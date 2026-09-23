@@ -7,6 +7,7 @@ import {
   useFonts,
 } from '@expo-google-fonts/bricolage-grotesque';
 import { Stack } from 'expo-router';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SQLiteProvider } from 'expo-sqlite';
 import * as SplashScreen from 'expo-splash-screen';
 import { type ReactNode, useEffect, useState } from 'react';
@@ -55,18 +56,21 @@ export default function RootLayout() {
 
   // The provider renders its children only after migrate() has finished.
   return (
-    <SQLiteProvider databaseName="progress.db" onInit={initDatabase} onError={setDbError}>
-      <LaunchContext value={launch}>
-        <HideSplash>
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: colors.background },
-            }}
-          />
-        </HideSplash>
-      </LaunchContext>
-    </SQLiteProvider>
+    // Gestures (the swipe card) need their root view around the whole app.
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SQLiteProvider databaseName="progress.db" onInit={initDatabase} onError={setDbError}>
+        <LaunchContext value={launch}>
+          <HideSplash>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: colors.background },
+              }}
+            />
+          </HideSplash>
+        </LaunchContext>
+      </SQLiteProvider>
+    </GestureHandlerRootView>
   );
 }
 

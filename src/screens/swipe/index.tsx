@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { PrimaryButton } from '@/components/primary-button';
 import { ProgressRing } from '@/components/progress-ring';
 import { SecondaryButton } from '@/components/secondary-button';
-import { CardBack, CardFront } from '@/screens/swipe/card';
+import { SwipeCard, type SwipeCardHandle } from '@/screens/swipe/swipe-card';
 import { colors, fonts, radii, spacing } from '@/theme';
 import type { DeckWord } from '@/vocabulary/deck';
 
@@ -14,21 +14,20 @@ type Props = {
   words: DeckWord[];
 };
 
-// The Swipe tab (docs/design/swipe-game-ui/README.md, "Swipe tab"): one card at a time, tap to
-// flip, answer with the buttons. Gestures, the queue rules, and the summary come in later parts.
+// The Swipe tab (docs/design/swipe-game-ui/README.md, "Swipe tab"): one card at a time — tap to
+// flip, swipe or use the buttons to answer. The queue rules and the summary come in part 3.
 export function Swipe({ levelLine, username, words }: Props) {
   const [index, setIndex] = useState(0);
-  const [flipped, setFlipped] = useState(false);
   const [known, setKnown] = useState(0);
+  const card = useRef<SwipeCardHandle>(null);
 
   const word = words[index];
   const left = words.length - index;
 
+  // Called once the card has flown out.
   const answer = (knowIt: boolean) => {
     if (knowIt) setKnown(known + 1);
     setIndex(index + 1);
-    // A new card always starts front-side up.
-    setFlipped(false);
   };
 
   return (
@@ -52,22 +51,16 @@ export function Swipe({ levelLine, username, words }: Props) {
         <>
           <View style={styles.cardArea}>
             {left > 1 && <View testID="next-card" style={styles.nextCard} />}
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Card: ${word.lemma}`}
-              accessibilityHint={flipped ? 'Shows the word' : 'Shows the meaning'}
-              onPress={() => setFlipped(!flipped)}
-              style={styles.card}
-            >
-              {flipped ? <CardBack word={word} /> : <CardFront word={word} />}
-            </Pressable>
+            {/* Keyed per answer: each card mounts fresh, centred and front-side up, even when the
+                same word comes straight back. */}
+            <SwipeCard ref={card} key={`${index}:${word.key}`} word={word} onAnswer={answer} />
           </View>
           <View style={styles.buttons}>
             <View style={styles.button}>
-              <SecondaryButton label="Still learning" onPress={() => answer(false)} />
+              <SecondaryButton label="Still learning" onPress={() => card.current?.answer(false)} />
             </View>
             <View style={styles.button}>
-              <PrimaryButton label="I know it" onPress={() => answer(true)} />
+              <PrimaryButton label="I know it" onPress={() => card.current?.answer(true)} />
             </View>
           </View>
         </>
@@ -128,9 +121,6 @@ const styles = StyleSheet.create({
     borderRadius: radii.card,
     backgroundColor: colors.roseLight,
     transform: [{ rotate: '-3deg' }, { scale: 0.96 }],
-  },
-  card: {
-    flex: 1,
   },
   buttons: {
     flexDirection: 'row',
