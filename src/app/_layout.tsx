@@ -14,7 +14,7 @@ import { type ReactNode, useEffect, useState } from 'react';
 import { LaunchContext } from '@/launch';
 import { StartupError } from '@/screens/startup-error';
 import { FIRST_LAUNCH, getLaunchPrefs, type LaunchPrefs } from '@/storage/prefs';
-import { migrate } from '@/storage/progress-db';
+import { initDatabase } from '@/storage/database';
 import { colors } from '@/theme';
 
 // Keep the native splash up until the fonts, the launch prefs, and progress.db are ready, so no
@@ -55,7 +55,7 @@ export default function RootLayout() {
 
   // The provider renders its children only after migrate() has finished.
   return (
-    <SQLiteProvider databaseName="progress.db" onInit={migrate} onError={setDbError}>
+    <SQLiteProvider databaseName="progress.db" onInit={initDatabase} onError={setDbError}>
       <LaunchContext value={launch}>
         <HideSplash>
           <Stack

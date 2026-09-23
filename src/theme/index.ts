@@ -38,6 +38,15 @@ export const radii = {
   tile: 14,
   checkbox: 7,
   pill: 999,
+  // The thin frame inside the rose card front.
+  frame: 26,
+  // The top corners of the tab bar.
+  bar: 24,
+} as const;
+
+// The drop shadow under rose cards (the swipe card, the Welcome hero).
+export const shadows = {
+  card: '0 24px 44px -20px rgba(140, 30, 70, 0.55)',
 } as const;
 
 // Horizontal screen padding.

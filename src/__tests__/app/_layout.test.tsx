@@ -4,7 +4,7 @@ import * as SplashScreen from 'expo-splash-screen';
 
 import RootLayout from '@/app/_layout';
 import { getLaunchPrefs, type LaunchPrefs } from '@/storage/prefs';
-import { migrate } from '@/storage/progress-db';
+import { initDatabase } from '@/storage/database';
 
 jest.mock('@expo-google-fonts/bricolage-grotesque', () => ({ useFonts: jest.fn() }));
 jest.mock('expo-splash-screen', () => ({
@@ -105,14 +105,14 @@ describe('<RootLayout />', () => {
     expect(SplashScreen.hideAsync).toHaveBeenCalledTimes(1);
   });
 
-  test('opens progress.db and migrates it before showing the app', async () => {
+  test('opens progress.db and runs the database setup before showing the app', async () => {
     mockUseFonts.mockReturnValue([true, null]);
 
     await render(<RootLayout />);
 
     expect(await screen.findByText('stack for Ana')).toBeOnTheScreen();
     expect(mockProviderProps.at(-1)).toEqual(
-      expect.objectContaining({ databaseName: 'progress.db', onInit: migrate }),
+      expect.objectContaining({ databaseName: 'progress.db', onInit: initDatabase }),
     );
   });
 

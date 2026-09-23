@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { router as appRouter } from 'expo-router';
 import { renderRouter } from 'expo-router/testing-library';
 
-import { openTestDb, type TestDb } from '../../../scripts/node-sqlite-db';
+import { BUNDLED_VOCABULARY, openTestDb, type TestDb } from '../../../scripts/node-sqlite-db';
 
 import StartRoute from '@/app/index';
 import OnboardingLayout from '@/app/onboarding/_layout';
@@ -12,7 +12,11 @@ import WelcomeRoute from '@/app/onboarding/index';
 import HowItWorksRoute from '@/app/onboarding/how-it-works';
 import LevelRoute from '@/app/onboarding/level';
 import UsernameRoute from '@/app/onboarding/username';
-import SwipeRoute from '@/app/swipe';
+import TabsLayout from '@/app/(tabs)/_layout';
+import ProgressRoute from '@/app/(tabs)/progress';
+import SettingsRoute from '@/app/(tabs)/settings';
+import SwipeRoute from '@/app/(tabs)/swipe';
+import WordsRoute from '@/app/(tabs)/words';
 import TutorialRoute from '@/app/tutorial';
 import { LaunchContext } from '@/launch';
 import type { LaunchPrefs } from '@/storage/prefs';
@@ -30,7 +34,11 @@ const routes = {
   'onboarding/level': LevelRoute,
   'onboarding/how-it-works': HowItWorksRoute,
   tutorial: TutorialRoute,
-  swipe: SwipeRoute,
+  '(tabs)/_layout': TabsLayout,
+  '(tabs)/swipe': SwipeRoute,
+  '(tabs)/words': WordsRoute,
+  '(tabs)/progress': ProgressRoute,
+  '(tabs)/settings': SettingsRoute,
 };
 
 const firstLaunch: LaunchPrefs = { username: null, onboardingDone: false, showTutorial: true };
@@ -55,6 +63,8 @@ describe('onboarding routes', () => {
     await AsyncStorage.clear();
     mockDb = openTestDb();
     await migrate(mockDb);
+    // The real dictionary, attached as the app does at startup (read only here).
+    await mockDb.runAsync('ATTACH DATABASE ? AS vocab', [BUNDLED_VOCABULARY]);
   });
   afterEach(() => mockDb.close());
 
@@ -151,6 +161,8 @@ describe('launch routing', () => {
     await AsyncStorage.clear();
     mockDb = openTestDb();
     await migrate(mockDb);
+    // The real dictionary, attached as the app does at startup (read only here).
+    await mockDb.runAsync('ATTACH DATABASE ? AS vocab', [BUNDLED_VOCABULARY]);
   });
   afterEach(() => mockDb.close());
 
@@ -168,7 +180,7 @@ describe('launch routing', () => {
     const { router } = await renderApp('/', { ...done, showTutorial: false });
 
     expect(router.getPathname()).toBe('/swipe');
-    expect(screen.getByText('Swipe — coming next')).toBeOnTheScreen();
+    expect(await screen.findByText('Tap to see the meaning')).toBeOnTheScreen();
   });
 
   test('the Tutorial saves its checkbox and opens Swipe', async () => {
@@ -201,5 +213,28 @@ describe('launch routing', () => {
     expect(appRouter.canGoBack()).toBe(false);
     expect(await AsyncStorage.getItem('onboardingDone')).toBe('true');
     expect(await AsyncStorage.getItem('showTutorial')).toBe('false');
+  });
+
+  test('the Swipe tab deals the first word of the saved level, and tabs switch', async () => {
+    await AsyncStorage.setItem('username', 'Ana');
+    const { router } = await renderApp('/swipe', { ...done, showTutorial: false });
+
+    expect(await screen.findByText('Hola, Ana')).toBeOnTheScreen();
+    expect(screen.getByText('Beginner · A1, A2')).toBeOnTheScreen();
+    expect(screen.getByText('0 / 100')).toBeOnTheScreen();
+    expect(screen.getByRole('tab', { name: 'Swipe' })).toBeSelected();
+
+    await fireEvent.press(screen.getByRole('tab', { name: 'Words' }));
+
+    expect(router.getPathname()).toBe('/words');
+    expect(screen.getByText('Words — coming next')).toBeOnTheScreen();
+    expect(screen.getByRole('tab', { name: 'Words' })).toBeSelected();
+  });
+
+  test('the Swipe tab shows the full-screen error when its words cannot be loaded', async () => {
+    await mockDb.execAsync('DETACH DATABASE vocab');
+    await renderApp('/swipe', { ...done, showTutorial: false });
+
+    expect(await screen.findByText('Something went wrong')).toBeOnTheScreen();
   });
 });

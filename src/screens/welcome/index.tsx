@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { PrimaryButton } from '@/components/primary-button';
-import { colors, fonts, radii } from '@/theme';
+import { colors, fonts, radii, shadows } from '@/theme';
 
 type Props = {
   onGetStarted: () => void | Promise<void>;
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.rose,
     padding: 11,
     transform: [{ rotate: '5deg' }, { translateX: 18 }],
-    boxShadow: '0 24px 44px -20px rgba(140, 30, 70, 0.55)',
+    boxShadow: shadows.card,
   },
   frame: {
     flex: 1,

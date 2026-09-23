@@ -6,7 +6,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 // The part of expo-sqlite's database these functions use; tests pass a Node SQLite stand-in.
 export type ProgressDb = Pick<
   SQLiteDatabase,
-  'execAsync' | 'runAsync' | 'getFirstAsync' | 'withTransactionAsync'
+  'execAsync' | 'runAsync' | 'getFirstAsync' | 'getAllAsync' | 'withTransactionAsync'
 >;
 
 export type Level = 'beginner' | 'intermediate' | 'advanced' | 'full';

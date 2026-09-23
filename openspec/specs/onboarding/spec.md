@@ -147,12 +147,3 @@ and open the Swipe screen.
 - **WHEN** the Tutorial is shown, the user unticks the checkbox and taps "Start swiping"
 - **THEN** `showTutorial` is false and the app shows the Swipe screen
 
-### Requirement: Swipe placeholder
-
-Until the swipe deck is built, `/swipe` SHALL show a themed screen reading "Swipe — coming next".
-
-#### Scenario: Placeholder
-
-- **WHEN** the app navigates to `/swipe`
-- **THEN** the screen reads "Swipe — coming next"
-

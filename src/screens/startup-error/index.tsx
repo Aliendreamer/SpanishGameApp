@@ -3,8 +3,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors, fonts, spacing } from '@/theme';
 
-// Full-screen error when the app's own data (progress.db) can't be opened at startup (roadmap:
-// bad data → full-screen error). There is nothing to retry in-app; reopening is the way out.
+// Full-screen error when the app's data (progress.db, the dictionary) can't be opened or read
+// (roadmap: bad data → full-screen error). There is nothing to retry in-app; reopening is the way
+// out.
 export function StartupError() {
   return (
     <SafeAreaView style={styles.screen}>

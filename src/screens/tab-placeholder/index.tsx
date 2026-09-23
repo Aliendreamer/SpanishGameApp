@@ -3,11 +3,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors, fonts } from '@/theme';
 
-// Stands in for the Swipe screen until the deck is built.
-export function SwipePlaceholder() {
+// Stands in for a tab until its screen is built.
+export function TabPlaceholder({ title }: { title: string }) {
   return (
-    <SafeAreaView style={styles.screen}>
-      <Text style={styles.text}>Swipe — coming next</Text>
+    <SafeAreaView edges={['top']} style={styles.screen}>
+      <Text style={styles.text}>{`${title} — coming next`}</Text>
     </SafeAreaView>
   );
 }

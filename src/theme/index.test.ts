@@ -38,6 +38,8 @@ describe('theme', () => {
       tile: 14,
       checkbox: 7,
       pill: 999,
+      frame: 26,
+      bar: 24,
     });
   });
 

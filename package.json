@@ -20,6 +20,7 @@
     "react-native-reanimated": "4.5.1",
     "react-native-safe-area-context": "5.7.0",
     "react-native-screens": "4.26.2",
+    "react-native-svg": "15.15.4",
     "react-native-worklets": "0.10.1"
   },
   "devDependencies": {
@@ -77,7 +78,10 @@
     ],
     "setupFiles": [
       "<rootDir>/jest.setup.js"
-    ]
+    ],
+    "moduleNameMapper": {
+      "\\.db$": "<rootDir>/scripts/asset-stub.js"
+    }
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
