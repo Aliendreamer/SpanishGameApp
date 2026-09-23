@@ -160,6 +160,18 @@ describe('onboarding routes', () => {
 describe('launch routing', () => {
   const done: LaunchPrefs = { username: 'Ana', onboardingDone: true, showTutorial: true };
 
+  // Opens the Swipe tab and marks its first word as answered "Still learning" in an earlier session.
+  async function openSwipeWithFirstWordStillLearning() {
+    await renderApp('/swipe', { ...done, showTutorial: false });
+    const card = await screen.findByRole('button', { name: /^Card:/ });
+    const lemma = String(card.props.accessibilityLabel).replace('Card: ', '');
+    const { key } = (await mockDb.getFirstAsync<{ key: string }>(
+      'SELECT key FROM vocab.vocabulary WHERE spanish = ? AND cefr IS NOT NULL',
+      [lemma],
+    ))!;
+    await mockDb.runAsync("INSERT INTO swipes (key, direction, at) VALUES (?, 'left', 0)", [key]);
+  }
+
   beforeEach(async () => {
     await AsyncStorage.clear();
     mockDb = openTestDb();
@@ -264,5 +276,24 @@ describe('launch routing', () => {
     await fireEvent.press(await screen.findByRole('button', { name: 'Open settings' }));
 
     expect(router.getPathname()).toBe('/settings');
+  });
+
+  test('a word answered Still learning earlier and now known shows the match overlay', async () => {
+    await openSwipeWithFirstWordStillLearning();
+
+    await fireEvent.press(screen.getByRole('button', { name: 'I know it' }));
+
+    expect(await screen.findByRole('header', { name: "It's a match!" })).toBeOnTheScreen();
+  });
+
+  test('answering Still learning again shows no match overlay', async () => {
+    await openSwipeWithFirstWordStillLearning();
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Still learning' }));
+
+    await waitFor(async () =>
+      expect(await mockDb.getFirstAsync('SELECT count(*) AS n FROM swipes')).toEqual({ n: 2 }),
+    );
+    expect(screen.queryByRole('header', { name: "It's a match!" })).toBeNull();
   });
 });

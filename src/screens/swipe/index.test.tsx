@@ -20,12 +20,12 @@ jest.mock('react-native-reanimated', () => jest.requireActual('react-native-rean
 
 async function renderSwipe({
   deck = words,
-  onAnswer = jest.fn(async () => {}),
+  onAnswer = jest.fn(async () => false),
   onNextBatch = jest.fn(async () => [word('perro')]),
   onOpenSettings = jest.fn(),
 }: {
   deck?: DeckWord[];
-  onAnswer?: (word: DeckWord, knowIt: boolean) => Promise<void>;
+  onAnswer?: (word: DeckWord, knowIt: boolean) => Promise<boolean>;
   onNextBatch?: () => Promise<DeckWord[]>;
   onOpenSettings?: () => void;
 } = {}) {
@@ -134,9 +134,9 @@ describe('<Swipe />', () => {
 
   test('a failed save shows a banner, keeps the game going, and clears on the next save', async () => {
     const onAnswer = jest
-      .fn<Promise<void>, [DeckWord, boolean]>()
+      .fn<Promise<boolean>, [DeckWord, boolean]>()
       .mockRejectedValueOnce(new Error('disk full'))
-      .mockResolvedValue(undefined);
+      .mockResolvedValue(false);
     await renderSwipe({ onAnswer });
 
     await know();
@@ -145,5 +145,27 @@ describe('<Swipe />', () => {
 
     await know();
     expect(screen.queryByText("Couldn't save your last answer.")).toBeNull();
+  });
+
+  test('shows the match overlay when an answer resolves as a match, and "Keep swiping" closes it', async () => {
+    const onAnswer = jest.fn(async (_word: DeckWord, knowIt: boolean) => knowIt);
+    await renderSwipe({ onAnswer });
+
+    await know();
+
+    expect(await screen.findByRole('header', { name: "It's a match!" })).toBeOnTheScreen();
+    expect(screen.getByText('house')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Keep swiping' }));
+
+    expect(screen.queryByRole('header', { name: "It's a match!" })).toBeNull();
+    expect(screen.getByText('mesa')).toBeOnTheScreen();
+  });
+
+  test('shows no match overlay for an ordinary answer', async () => {
+    await renderSwipe();
+
+    await know();
+
+    expect(screen.queryByRole('header', { name: "It's a match!" })).toBeNull();
   });
 });

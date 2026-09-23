@@ -22,6 +22,25 @@ describe('swipe log', () => {
     ]);
   });
 
+  test("reports the word's previous swipe: none, then each latest direction", async () => {
+    expect(await logSwipe(db, 'casa|noun', false)).toBeNull();
+    expect(await logSwipe(db, 'casa|noun', true)).toBe('left');
+    expect(await logSwipe(db, 'casa|noun', true)).toBe('right');
+    expect(await logSwipe(db, 'mesa|noun', true)).toBeNull();
+  });
+
+  test('saves answers given at the same time, each with its own previous swipe', async () => {
+    await logSwipe(db, 'casa|noun', false);
+
+    const previous = await Promise.all([
+      logSwipe(db, 'casa|noun', true),
+      logSwipe(db, 'mesa|noun', true),
+    ]);
+
+    expect(previous).toEqual(['left', null]);
+    expect(await db.getFirstAsync('SELECT count(*) AS n FROM swipes')).toEqual({ n: 3 });
+  });
+
   test('a word is known when its latest swipe is right', async () => {
     await logSwipe(db, 'casa|noun', false);
     await logSwipe(db, 'casa|noun', true);

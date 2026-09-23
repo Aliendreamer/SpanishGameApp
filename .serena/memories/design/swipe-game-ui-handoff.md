@@ -31,7 +31,18 @@ The user designed the app UI in Claude Design and likes it. It is the reference 
   - The root layout reads `getLaunchPrefs()` (AsyncStorage: username, onboardingDone, showTutorial) before hiding the splash, and shares the result via `LaunchContext` (`src/launch`).
   - `/` redirects via `launchTarget()` to `/onboarding`, `/tutorial` or `/swipe`.
   - `/tutorial` reuses the `HowItWorks` screen inside `ScreenFrame` with a greeting.
-- `/swipe` is a placeholder (`src/screens/swipe-placeholder`). NEXT: the swipe deck and the bottom tabs.
+- The swipe deck is done in 4 parts, archived 2026-09-23:
+  - `swipe-card`: tabs, dictionary attach, deck query, card.
+  - `swipe-gestures`: pan, stamps, fly-out, 3D flip.
+  - `game-rules`: swipe log, queue reducer, summary, empty state, banner.
+  - `match-overlay`: "It's a match!".
+- How the deck works:
+  - The dictionary is attached to progress.db as `vocab`.
+  - The deck is dealt by `getDeck` / `dealBatch` (`src/vocabulary/deck.ts`).
+  - Queue rules live in `src/vocabulary/queue.ts`; the swipe log in `src/storage/swipes.ts`.
+- Words, Progress and Settings tabs are placeholders (`src/screens/tab-placeholder`).
+- NEXT: those tabs, screen by screen.
+- Follow-up for Settings: the Swipe tab reads settings once on mount; it must re-deal when settings change.
 - Shared components: `Checkbox`, `ScreenFrame`, `StepHeading` (optional greeting and body).
 - Game settings live in `progress.db` (user chose SQLite now over AsyncStorage).
   - `src/storage/progress-db.ts`: migrations tracked by `PRAGMA user_version` and a one-row `settings` table.

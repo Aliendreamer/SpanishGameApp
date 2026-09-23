@@ -47,6 +47,8 @@ export const radii = {
 // The drop shadow under rose cards (the swipe card, the Welcome hero).
 export const shadows = {
   card: '0 24px 44px -20px rgba(140, 30, 70, 0.55)',
+  // The card on the "It's a match!" overlay.
+  match: '0 24px 44px -18px rgba(80, 10, 40, 0.5)',
 } as const;
 
 // Horizontal screen padding.

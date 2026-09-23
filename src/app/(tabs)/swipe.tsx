@@ -60,7 +60,11 @@ export default function SwipeRoute() {
         levelLine={levelLine(settings)}
         username={username}
         initialWords={words}
-        onAnswer={(word, knowIt) => logSwipe(db, word.key, knowIt)}
+        // A match: the word's previous swipe was "Still learning" and now it is known.
+        onAnswer={async (word, knowIt) => {
+          const previous = await logSwipe(db, word.key, knowIt);
+          return knowIt && previous === 'left';
+        }}
         onNextBatch={nextBatch}
         onOpenSettings={() => router.navigate('/settings')}
       />

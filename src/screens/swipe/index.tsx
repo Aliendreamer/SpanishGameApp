@@ -5,6 +5,7 @@ import { PrimaryButton } from '@/components/primary-button';
 import { ProgressRing } from '@/components/progress-ring';
 import { SecondaryButton } from '@/components/secondary-button';
 import { EmptyDeck } from '@/screens/swipe/empty';
+import { MatchOverlay } from '@/screens/swipe/match';
 import { BatchSummary } from '@/screens/swipe/summary';
 import { SwipeCard, type SwipeCardHandle } from '@/screens/swipe/swipe-card';
 import { colors, fonts, radii, spacing } from '@/theme';
@@ -15,8 +16,9 @@ type Props = {
   levelLine: string;
   username: string | null;
   initialWords: DeckWord[];
-  // Saves an answer; a rejection shows the save-failure banner, the game carries on.
-  onAnswer: (word: DeckWord, knowIt: boolean) => Promise<void>;
+  // Saves an answer and resolves true for a match (a "Still learning" word now known); a
+  // rejection shows the save-failure banner, and the game carries on.
+  onAnswer: (word: DeckWord, knowIt: boolean) => Promise<boolean>;
   onNextBatch: () => Promise<DeckWord[]>;
   onOpenSettings: () => void;
 };
@@ -35,6 +37,8 @@ export function Swipe({
   // Counts answers, so each card mounts fresh even when the same word comes straight back.
   const [turn, setTurn] = useState(0);
   const [saveFailed, setSaveFailed] = useState(false);
+  // The word being celebrated with "It's a match!", if any.
+  const [match, setMatch] = useState<DeckWord | null>(null);
   const card = useRef<SwipeCardHandle>(null);
 
   const word = batch.queue[0];
@@ -44,7 +48,10 @@ export function Swipe({
     setBatch(answerCard(batch, knowIt));
     setTurn(turn + 1);
     onAnswer(word, knowIt).then(
-      () => setSaveFailed(false),
+      (isMatch) => {
+        setSaveFailed(false);
+        if (isMatch) setMatch(word);
+      },
       () => setSaveFailed(true),
     );
   };
@@ -100,6 +107,7 @@ export function Swipe({
           </View>
         </>
       )}
+      {match && <MatchOverlay word={match} onClose={() => setMatch(null)} />}
     </View>
   );
 }
