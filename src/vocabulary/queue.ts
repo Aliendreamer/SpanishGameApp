@@ -1,40 +1,41 @@
+import type { Swipe } from '@/storage/swipes';
 import type { DeckWord } from '@/vocabulary/deck';
 
-// One batch of the swipe game (roadmap: "Right removes the card, left re-queues it ~4 cards
-// later"; docs/design/swipe-game-ui/README.md, "Queue rules"). Pure, so the rules are unit-tested.
-
-// A "Still learning" card comes back after this many others.
-const REQUEUE_AFTER = 3;
+// One batch of the swipe game: a single pass over its cards. "Still learning" doesn't bring a card
+// back; it records the word for an optional practise round after the batch. Pure, so the rules are
+// unit-tested.
 
 export type Batch = {
   // Cards still to answer; the first is on screen.
   queue: DeckWord[];
   // How many words the batch started with.
   size: number;
-  // Words answered "I know it" so far.
+  // Words answered "I know it".
   known: number;
-  // Keys answered "Still learning" at least once in this batch.
-  retried: ReadonlySet<string>;
+  // Words answered "Still learning", in order: the practise round.
+  learning: DeckWord[];
 };
 
 export function startBatch(words: DeckWord[]): Batch {
-  return { queue: words, size: words.length, known: 0, retried: new Set() };
+  return { queue: words, size: words.length, known: 0, learning: [] };
 }
 
 export function answerCard(batch: Batch, knowIt: boolean): Batch {
   const [card, ...rest] = batch.queue;
   if (!card) return batch;
-  if (knowIt) return { ...batch, queue: rest, known: batch.known + 1 };
-
-  const at = Math.min(REQUEUE_AFTER, rest.length);
-  return {
-    ...batch,
-    queue: [...rest.slice(0, at), card, ...rest.slice(at)],
-    retried: new Set(batch.retried).add(card.key),
-  };
+  return knowIt
+    ? { ...batch, queue: rest, known: batch.known + 1 }
+    : { ...batch, queue: rest, learning: [...batch.learning, card] };
 }
 
 // The numbers on the "Batch done" screen.
-export function batchSummary({ size, retried }: Batch) {
-  return { size, firstTry: size - retried.size, fewTries: retried.size };
+export function batchSummary({ size, known, learning }: Batch) {
+  return { size, known, learning: learning.length };
+}
+
+// "It's a match!": a right answer on a word whose previous swipe was "Still learning" from before
+// this batch was dealt. Misses in this batch or its practise round don't count, so the moment marks
+// a word that finally clicked rather than one missed a minute ago.
+export function isMatch(knowIt: boolean, previous: Swipe | null, batchDealtAt: number): boolean {
+  return knowIt && previous?.direction === 'left' && previous.at < batchDealtAt;
 }

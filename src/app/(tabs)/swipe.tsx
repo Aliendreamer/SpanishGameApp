@@ -12,6 +12,7 @@ import { getSettings, type Settings } from '@/storage/progress-db';
 import { logSwipe } from '@/storage/swipes';
 import { dealBatch, type DeckWord, getDeck } from '@/vocabulary/deck';
 import { levelLine } from '@/vocabulary/levels';
+import { isMatch } from '@/vocabulary/queue';
 
 // `version` is the refresh version this deck was dealt for; the screen is keyed by it.
 type Loaded = { settings: Settings; username: string | null; words: DeckWord[]; version: number };
@@ -24,6 +25,8 @@ export default function SwipeRoute() {
   const [failed, setFailed] = useState(false);
   // The session's current batch number (see dealBatch).
   const [batch, setBatch] = useState(0);
+  // When the current batch was dealt (practise rounds keep it): misses before it can make a match.
+  const [dealtAt, setDealtAt] = useState(0);
 
   // Syncs with progress.db and AsyncStorage: the saved settings, the username (read here, not from
   // the launch context, which predates onboarding), and the first batch for those settings —
@@ -36,6 +39,7 @@ export default function SwipeRoute() {
       if (active) {
         setLoaded({ settings, username, words, version });
         setBatch(0);
+        setDealtAt(Date.now());
       }
     })().catch(() => {
       // Bad data gets the full-screen error (roadmap), never a blank tab.
@@ -55,6 +59,7 @@ export default function SwipeRoute() {
     try {
       const deal = await dealBatch(db, settings, batch + 1);
       setBatch(deal.batch);
+      setDealtAt(Date.now());
       return deal.words;
     } catch {
       setFailed(true);
@@ -71,10 +76,10 @@ export default function SwipeRoute() {
         levelLine={levelLine(settings)}
         username={username}
         initialWords={words}
-        // A match: the word's previous swipe was "Still learning" and now it is known.
+        // A match: a word missed before this batch is now known (see isMatch).
         onAnswer={async (word, knowIt) => {
           const previous = await logSwipe(db, word.key, knowIt);
-          return knowIt && previous === 'left';
+          return isMatch(knowIt, previous, dealtAt);
         }}
         onNextBatch={nextBatch}
         onOpenSettings={() => router.navigate('/settings')}

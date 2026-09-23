@@ -49,7 +49,10 @@ The user designed the app UI in Claude Design and likes it. It is the reference 
   - Days are local day numbers (`src/progress/stats.ts`).
   - The streak counts back from yesterday while today has no swipe.
 - All four tabs and onboarding from the handoff are built. Roadmap step 4 is complete.
-- User feedback, not yet acted on: the match overlay feels too frequent. Candidate fixes are to celebrate only words learned across sessions, or to cap it to one every few cards.
+- Batch rules changed at the user's request (change `single-pass-batches`, 2026-09-23):
+  - Batches are one pass, with no re-queueing.
+  - The end-of-batch summary offers "Next batch" (only words never swiped, choice (a)) or "Practise the {n} still learning" (one pass over the batch's misses).
+  - "It's a match!" fires only for words missed before the current batch was dealt (`isMatch` in `src/vocabulary/queue.ts`).
 - Shared components: `Checkbox`, `ScreenFrame`, `StepHeading` (optional greeting and body).
 - Game settings live in `progress.db` (user chose SQLite now over AsyncStorage).
   - `src/storage/progress-db.ts`: migrations tracked by `PRAGMA user_version` and a one-row `settings` table.

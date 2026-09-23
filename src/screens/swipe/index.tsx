@@ -24,7 +24,7 @@ type Props = {
 };
 
 // The Swipe tab (docs/design/swipe-game-ui/README.md, "Swipe tab"): one card at a time — tap to
-// flip, swipe or use the buttons to answer — until every word of the batch is known.
+// flip, swipe or use the buttons to answer — one pass per batch, then a choice.
 export function Swipe({
   levelLine,
   username,
@@ -40,6 +40,9 @@ export function Swipe({
   // The word being celebrated with "It's a match!", if any.
   const [match, setMatch] = useState<DeckWord | null>(null);
   const card = useRef<SwipeCardHandle>(null);
+  // The latest answer's save: "Next batch" waits for it, so a word just answered is never dealt
+  // again because its swipe wasn't stored yet.
+  const lastSave = useRef<Promise<void>>(Promise.resolve());
 
   const word = batch.queue[0];
 
@@ -47,7 +50,7 @@ export function Swipe({
   const answer = (knowIt: boolean) => {
     setBatch(answerCard(batch, knowIt));
     setTurn(turn + 1);
-    onAnswer(word, knowIt).then(
+    lastSave.current = onAnswer(word, knowIt).then(
       (isMatch) => {
         setSaveFailed(false);
         if (isMatch) setMatch(word);
@@ -57,7 +60,13 @@ export function Swipe({
   };
 
   const nextBatch = async () => {
+    await lastSave.current;
     setBatch(startBatch(await onNextBatch()));
+    setTurn(turn + 1);
+  };
+  // Another pass over just the words answered "Still learning".
+  const practise = () => {
+    setBatch(startBatch(batch.learning));
     setTurn(turn + 1);
   };
 
@@ -88,7 +97,8 @@ export function Swipe({
       ) : !word ? (
         <BatchSummary
           summary={batchSummary(batch)}
-          onContinue={nextBatch}
+          onNext={nextBatch}
+          onPractise={practise}
           onOpenSettings={onOpenSettings}
         />
       ) : (

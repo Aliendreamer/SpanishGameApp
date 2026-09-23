@@ -1,5 +1,4 @@
 import type { ProgressDb, Settings } from '@/storage/progress-db';
-import { KNOWN_KEYS } from '@/storage/swipes';
 import { articleFor } from '@/vocabulary/article';
 import { deckBands } from '@/vocabulary/levels';
 
@@ -29,8 +28,8 @@ type WordRow = {
 };
 
 // Words for the saved settings: level by level (unlevelled last), each level in frequency order —
-// the order the roadmap sets for dealing batches. Known words (latest swipe right) are left out
-// unless the settings include them; `offset` skips words already dealt this session.
+// the order the roadmap sets for dealing batches. Words swiped before are left out unless the
+// settings include known words; `offset` skips words already dealt this session.
 export async function getDeck(
   db: ProgressDb,
   settings: Pick<Settings, 'level' | 'includeLower'> & Partial<Pick<Settings, 'includeKnown'>>,
@@ -39,7 +38,8 @@ export async function getDeck(
   const bands = deckBands(settings);
   const conditions = [
     ...(bands ? [`cefr IN (${bands.map(() => '?').join(', ')})`] : []),
-    ...(settings.includeKnown ? [] : [`key NOT IN (${KNOWN_KEYS})`]),
+    // New words only: anything swiped before (known or still learning) is left out.
+    ...(settings.includeKnown ? [] : ['key NOT IN (SELECT key FROM main.swipes)']),
   ];
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
   const rows = await db.getAllAsync<WordRow>(

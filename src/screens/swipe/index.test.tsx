@@ -80,7 +80,7 @@ describe('<Swipe />', () => {
     expect(screen.getByText('1 / 3')).toBeOnTheScreen();
   });
 
-  test('"Still learning" reports the answer and brings the word back later', async () => {
+  test('"Still learning" reports the answer and moves on; the word does not come back', async () => {
     const { onAnswer } = await renderSwipe();
 
     await learn();
@@ -89,7 +89,7 @@ describe('<Swipe />', () => {
 
     await know(); // mesa
     await know(); // silla
-    expect(screen.getByText('casa')).toBeOnTheScreen();
+    expect(screen.getByRole('header', { name: 'Batch done' })).toBeOnTheScreen();
   });
 
   test('shows the next-card hint only while more than one card is left', async () => {
@@ -103,24 +103,44 @@ describe('<Swipe />', () => {
     expect(screen.queryByTestId('next-card')).toBeNull();
   });
 
-  test('when every word is known, shows the summary; Continue deals the next batch', async () => {
+  test('after one pass, shows the summary; Practise replays the misses, Next batch deals more', async () => {
     const { onNextBatch } = await renderSwipe();
 
-    await learn(); // casa comes back
-    await know();
-    await know();
+    await learn(); // casa
+    await know(); // mesa
+    await know(); // silla
+
+    expect(screen.getByText('You know 2 of 3 words in this batch.')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Practise the 1 still learning' }));
+
+    expect(screen.getByText('casa')).toBeOnTheScreen();
+    expect(screen.getByText('0 / 1')).toBeOnTheScreen();
     await know(); // casa
 
-    expect(screen.getByRole('header', { name: 'Batch done' })).toBeOnTheScreen();
-    expect(screen.getByText('You know all 3 words in this batch.')).toBeOnTheScreen();
-    expect(screen.getByText('2')).toBeOnTheScreen();
-    expect(screen.getByText('1')).toBeOnTheScreen();
-
-    await fireEvent.press(screen.getByRole('button', { name: 'Continue with the next batch' }));
+    expect(screen.getByText('You know 1 of 1 words in this batch.')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Next batch' }));
 
     expect(onNextBatch).toHaveBeenCalledTimes(1);
     expect(screen.getByText('perro')).toBeOnTheScreen();
     expect(screen.getByText('0 / 1')).toBeOnTheScreen();
+  });
+
+  test('Next batch waits until the last answer is saved', async () => {
+    let finishSave = () => {};
+    const onAnswer = jest.fn(
+      () => new Promise<boolean>((resolve) => (finishSave = () => resolve(false))),
+    );
+    const onNextBatch = jest.fn(async () => [word('perro')]);
+    await renderSwipe({ deck: [word('casa')], onAnswer, onNextBatch });
+
+    await know();
+    // Without the wait, onNextBatch would run at once, inside this press.
+    const next = fireEvent.press(screen.getByRole('button', { name: 'Next batch' }));
+    expect(onNextBatch).not.toHaveBeenCalled();
+
+    finishSave();
+    await next;
+    expect(onNextBatch).toHaveBeenCalledTimes(1);
   });
 
   test('the empty state opens the settings', async () => {

@@ -7,32 +7,42 @@ import type { batchSummary } from '@/vocabulary/queue';
 
 type Props = {
   summary: ReturnType<typeof batchSummary>;
-  onContinue: () => void | Promise<void>;
+  onNext: () => void | Promise<void>;
+  // A one-pass round of the words answered "Still learning".
+  onPractise: () => void;
   onOpenSettings: () => void;
 };
 
-// "Batch done" (docs/design/swipe-game-ui/README.md, "Batch summary").
-export function BatchSummary({ summary, onContinue, onOpenSettings }: Props) {
+// "Batch done" after one pass: how it went, then next batch, practise the misses, or settings.
+export function BatchSummary({ summary, onNext, onPractise, onOpenSettings }: Props) {
   return (
     <View style={styles.screen}>
       <View style={styles.copy}>
         <Text accessibilityRole="header" style={styles.title}>
           Batch done
         </Text>
-        <Text style={styles.body}>{`You know all ${summary.size} words in this batch.`}</Text>
+        <Text style={styles.body}>
+          {`You know ${summary.known} of ${summary.size} words in this batch.`}
+        </Text>
       </View>
       <View style={styles.tiles}>
         <View style={styles.tile}>
-          <Text style={[styles.number, styles.firstTry]}>{summary.firstTry}</Text>
-          <Text style={styles.tileLabel}>known on the first swipe</Text>
+          <Text style={[styles.number, styles.known]}>{summary.known}</Text>
+          <Text style={styles.tileLabel}>known</Text>
         </View>
         <View style={styles.tile}>
-          <Text style={styles.number}>{summary.fewTries}</Text>
-          <Text style={styles.tileLabel}>took a few tries</Text>
+          <Text style={styles.number}>{summary.learning}</Text>
+          <Text style={styles.tileLabel}>still learning</Text>
         </View>
       </View>
       <View style={styles.buttons}>
-        <PrimaryButton label="Continue with the next batch" onPress={onContinue} />
+        <PrimaryButton label="Next batch" onPress={onNext} />
+        {summary.learning > 0 && (
+          <SecondaryButton
+            label={`Practise the ${summary.learning} still learning`}
+            onPress={onPractise}
+          />
+        )}
         <SecondaryButton label="Change settings" onPress={onOpenSettings} />
       </View>
     </View>
@@ -80,7 +90,7 @@ const styles = StyleSheet.create({
     lineHeight: 42,
     color: colors.ink,
   },
-  firstTry: {
+  known: {
     color: colors.rose,
   },
   tileLabel: {

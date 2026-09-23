@@ -1,5 +1,5 @@
 import type { DeckWord } from '@/vocabulary/deck';
-import { answerCard, batchSummary, startBatch } from '@/vocabulary/queue';
+import { answerCard, batchSummary, isMatch, startBatch } from '@/vocabulary/queue';
 
 const word = (lemma: string): DeckWord => ({
   key: `${lemma}|noun`,
@@ -11,47 +11,54 @@ const word = (lemma: string): DeckWord => ({
   meanings: [lemma],
   example: null,
 });
-const lemmas = (batch: ReturnType<typeof startBatch>) => batch.queue.map((w) => w.lemma);
-const five = ['casa', 'mesa', 'silla', 'vaso', 'perro'].map(word);
+const lemmas = (words: DeckWord[]) => words.map((w) => w.lemma);
+const three = ['casa', 'mesa', 'silla'].map(word);
 
 describe('batch queue', () => {
-  test('starts with the dealt words in order, nothing known', () => {
-    const batch = startBatch(five);
+  test('starts with the dealt words in order, nothing answered', () => {
+    const batch = startBatch(three);
 
-    expect(lemmas(batch)).toEqual(['casa', 'mesa', 'silla', 'vaso', 'perro']);
-    expect(batch).toEqual(expect.objectContaining({ size: 5, known: 0 }));
+    expect(lemmas(batch.queue)).toEqual(['casa', 'mesa', 'silla']);
+    expect(batch).toEqual(expect.objectContaining({ size: 3, known: 0, learning: [] }));
   });
 
   test('"I know it" removes the card and counts it', () => {
-    const batch = answerCard(startBatch(five), true);
+    const batch = answerCard(startBatch(three), true);
 
-    expect(lemmas(batch)).toEqual(['mesa', 'silla', 'vaso', 'perro']);
+    expect(lemmas(batch.queue)).toEqual(['mesa', 'silla']);
     expect(batch.known).toBe(1);
   });
 
-  test('"Still learning" puts the card back after the next 3', () => {
-    const batch = answerCard(startBatch(five), false);
+  test('"Still learning" removes the card too, and records it for practice', () => {
+    const batch = answerCard(startBatch(three), false);
 
-    expect(lemmas(batch)).toEqual(['mesa', 'silla', 'vaso', 'casa', 'perro']);
+    expect(lemmas(batch.queue)).toEqual(['mesa', 'silla']);
+    expect(lemmas(batch.learning)).toEqual(['casa']);
     expect(batch.known).toBe(0);
   });
 
-  test('with fewer than 3 left, "Still learning" puts the card last', () => {
-    const two = startBatch([word('casa'), word('mesa')]);
-
-    expect(lemmas(answerCard(two, false))).toEqual(['mesa', 'casa']);
-    expect(lemmas(answerCard(startBatch([word('casa')]), false))).toEqual(['casa']);
-  });
-
-  test('the summary counts first-try words and words that took a few tries', () => {
-    let batch = startBatch(five.slice(0, 3));
-    batch = answerCard(batch, false); // casa → back
+  test('one pass ends the batch; the summary counts known and still learning', () => {
+    let batch = startBatch(three);
+    batch = answerCard(batch, false); // casa
     batch = answerCard(batch, true); // mesa
     batch = answerCard(batch, true); // silla
-    batch = answerCard(batch, false); // casa again
-    batch = answerCard(batch, true); // casa
 
     expect(batch.queue).toEqual([]);
-    expect(batchSummary(batch)).toEqual({ size: 3, firstTry: 2, fewTries: 1 });
+    expect(batchSummary(batch)).toEqual({ size: 3, known: 2, learning: 1 });
+  });
+});
+
+describe('isMatch', () => {
+  const DEALT = 1000;
+
+  test('a right answer on a word missed before this batch was dealt', () => {
+    expect(isMatch(true, { direction: 'left', at: DEALT - 1 }, DEALT)).toBe(true);
+  });
+
+  test('not for a miss in this batch or its practise round, a first answer, or a left answer', () => {
+    expect(isMatch(true, { direction: 'left', at: DEALT + 1 }, DEALT)).toBe(false);
+    expect(isMatch(true, null, DEALT)).toBe(false);
+    expect(isMatch(true, { direction: 'right', at: 0 }, DEALT)).toBe(false);
+    expect(isMatch(false, { direction: 'left', at: 0 }, DEALT)).toBe(false);
   });
 });

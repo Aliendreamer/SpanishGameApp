@@ -4,9 +4,10 @@ import type { ProgressDb } from '@/storage/progress-db';
 // keep it. Known and "still learning" are derived from each word's latest swipe, never stored.
 
 export type Direction = 'right' | 'left';
+export type Swipe = { direction: Direction; at: number };
 
-// Logs an answer and returns the word's previous latest swipe (null the first time), so a
-// "Still learning" word finally answered "I know it" can be celebrated. No transaction: expo-sqlite
+// Logs an answer and returns the word's previous latest swipe and its time (null the first time),
+// so a "Still learning" word from an earlier batch finally answered "I know it" can be celebrated. No transaction: expo-sqlite
 // transactions share the one connection, so overlapping saves would collide. Inserting first and
 // then reading the row before it is safe however saves overlap.
 export async function logSwipe(
@@ -14,16 +15,15 @@ export async function logSwipe(
   key: string,
   knowIt: boolean,
   at = Date.now(),
-): Promise<Direction | null> {
+): Promise<Swipe | null> {
   const { lastInsertRowId } = await db.runAsync(
     'INSERT INTO swipes (key, direction, at) VALUES (?, ?, ?)',
     [key, knowIt ? 'right' : 'left', at],
   );
-  const previous = await db.getFirstAsync<{ direction: Direction }>(
-    'SELECT direction FROM swipes WHERE key = ? AND id < ? ORDER BY id DESC LIMIT 1',
+  return db.getFirstAsync<Swipe>(
+    'SELECT direction, at FROM swipes WHERE key = ? AND id < ? ORDER BY id DESC LIMIT 1',
     [key, lastInsertRowId],
   );
-  return previous?.direction ?? null;
 }
 
 // Each word's latest swipe. SQLite takes a bare column (direction) from the row that max(id) picks.

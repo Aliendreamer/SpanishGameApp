@@ -1,8 +1,5 @@
-# swipe-deck Specification
+## MODIFIED Requirements
 
-## Purpose
-TBD - created by archiving change swipe-card. Update Purpose after archive.
-## Requirements
 ### Requirement: Deck of words
 
 The Swipe tab SHALL deal up to 100 words matching the saved level settings — Beginner A1 and A2,
@@ -43,72 +40,6 @@ part of speech, up to 3 meanings in priority order, and its first example senten
 - **WHEN** the level is Full
 - **THEN** words without a CEFR level come after all levelled words
 
-### Requirement: Swipe header
-
-The Swipe tab SHALL show a header with the level line (e.g. "Beginner · A1, A2"), "Hola,
-{username}", and the batch progress as "known / batch size" with a progress ring.
-
-#### Scenario: Progress counts known answers
-
-- **WHEN** the user answers "I know it" on 2 of the first 3 cards of a 100-word batch
-- **THEN** the header reads "2 / 100"
-
-### Requirement: Word card
-
-The card front SHALL show the word's level, its article (nouns), the lemma, and "Tap to see the
-meaning"; a tap SHALL turn the card over with a 3D flip (450 ms) to the back: article and lemma, a
-part-of-speech chip, the meanings, and the example sentence with its English translation. A new
-card SHALL start front-side up. A next-card hint SHALL show behind the card while more than one
-card is left.
-
-#### Scenario: Flip
-
-- **WHEN** the user taps the card showing "casa"
-- **THEN** the back shows "la casa", the "noun" chip, and its meanings
-
-### Requirement: Answer buttons
-
-"Still learning" and "I know it" SHALL fly the card out (left or right) and move to the next card;
-"I know it" SHALL add one to the known count.
-
-#### Scenario: Next card
-
-- **WHEN** the user presses "I know it" on the first card
-- **THEN** the second card is shown front-side up and the known count is 1
-
-### Requirement: Swipe to answer
-
-The card SHALL follow a horizontal drag, moving by the drag distance and rotating by a twentieth
-of it in degrees. On release, a drag past 90 dp to the right SHALL answer "I know it" and to the
-left "Still learning", flying the card out (±560 dp, ±24°, 300 ms); a release under 6 dp from
-the start in any direction SHALL count as a tap and flip the card; any other release, and any
-cancelled touch, SHALL spring the card back to the centre over 300 ms.
-
-#### Scenario: Swipe right
-
-- **WHEN** the user drags the card 120 dp right and lets go
-- **THEN** the word is answered "I know it" and the next card is shown
-
-#### Scenario: Short drag
-
-- **WHEN** the user drags the card 50 dp and lets go
-- **THEN** the card springs back and nothing is answered
-
-#### Scenario: Tap
-
-- **WHEN** the user touches the card and lets go after moving 3 dp
-- **THEN** the card flips
-
-### Requirement: Swipe stamps
-
-While dragging, an "I know it" stamp (olive, top-left) SHALL fade in on a right drag and a "Still
-learning" stamp (ink, top-right) on a left drag, reaching full opacity at 90 dp.
-
-#### Scenario: Half-way
-
-- **WHEN** the card is dragged 45 dp to the right
-- **THEN** the "I know it" stamp is at half opacity and "Still learning" is hidden
-
 ### Requirement: Batch queue
 
 Each card of a batch SHALL be shown once: "I know it" and "Still learning" both remove it, and
@@ -123,22 +54,6 @@ Each card of a batch SHALL be shown once: "I know it" and "Still learning" both 
 
 - **WHEN** the user answers the last card of the batch
 - **THEN** the batch summary is shown
-
-### Requirement: Swipe log
-
-Every answer SHALL be saved to `progress.db` as a swipe (word key, direction, time). If saving
-fails, a non-blocking banner SHALL say so and the game SHALL carry on; the banner SHALL go away
-after the next successful save.
-
-#### Scenario: Answer saved
-
-- **WHEN** the user answers "I know it" on casa
-- **THEN** a right swipe for `casa|noun` is stored
-
-#### Scenario: Save fails
-
-- **WHEN** saving an answer fails
-- **THEN** "Couldn't save your last answer." is shown and the next card is still shown
 
 ### Requirement: Batch summary
 
@@ -162,17 +77,6 @@ tab.
 
 - **WHEN** the user presses "Next batch"
 - **THEN** a new batch of words not swiped before is dealt
-
-### Requirement: Empty state
-
-When no words match the settings the Swipe tab SHALL show "No words match your settings", "You
-already know every word at this level. Try another level, or include known words.", and an "Open
-settings" button that opens the Settings tab.
-
-#### Scenario: Nothing to deal
-
-- **WHEN** every word of the chosen level is known and known words are excluded
-- **THEN** the empty state is shown
 
 ### Requirement: It's a match
 
@@ -203,4 +107,3 @@ and 60% size to −4° and full size over 500 ms.
 
 - **WHEN** the overlay is shown and the user taps "Keep swiping"
 - **THEN** the overlay closes and the next card is shown
-

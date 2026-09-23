@@ -4,28 +4,35 @@ import { EmptyDeck } from '@/screens/swipe/empty';
 import { BatchSummary } from '@/screens/swipe/summary';
 
 describe('<BatchSummary />', () => {
-  test('shows the batch size and both tallies, and wires both buttons', async () => {
-    const onContinue = jest.fn();
-    const onOpenSettings = jest.fn();
+  const renderSummary = async (learning: number) => {
+    const handlers = { onNext: jest.fn(), onPractise: jest.fn(), onOpenSettings: jest.fn() };
     await render(
-      <BatchSummary
-        summary={{ size: 3, firstTry: 2, fewTries: 1 }}
-        onContinue={onContinue}
-        onOpenSettings={onOpenSettings}
-      />,
+      <BatchSummary summary={{ size: 3, known: 3 - learning, learning }} {...handlers} />,
     );
+    return handlers;
+  };
+
+  test('shows how many words are known and still learning, and wires every choice', async () => {
+    const { onNext, onPractise, onOpenSettings } = await renderSummary(1);
 
     expect(screen.getByRole('header', { name: 'Batch done' })).toBeOnTheScreen();
-    expect(screen.getByText('You know all 3 words in this batch.')).toBeOnTheScreen();
-    expect(screen.getByText('2')).toBeOnTheScreen();
-    expect(screen.getByText('known on the first swipe')).toBeOnTheScreen();
-    expect(screen.getByText('1')).toBeOnTheScreen();
-    expect(screen.getByText('took a few tries')).toBeOnTheScreen();
+    expect(screen.getByText('You know 2 of 3 words in this batch.')).toBeOnTheScreen();
+    expect(screen.getByText('known')).toBeOnTheScreen();
+    expect(screen.getByText('still learning')).toBeOnTheScreen();
 
-    await fireEvent.press(screen.getByRole('button', { name: 'Continue with the next batch' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Next batch' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Practise the 1 still learning' }));
     await fireEvent.press(screen.getByRole('button', { name: 'Change settings' }));
-    expect(onContinue).toHaveBeenCalledTimes(1);
+    expect(onNext).toHaveBeenCalledTimes(1);
+    expect(onPractise).toHaveBeenCalledTimes(1);
     expect(onOpenSettings).toHaveBeenCalledTimes(1);
+  });
+
+  test('offers no practise round when every word is known', async () => {
+    await renderSummary(0);
+
+    expect(screen.getByText('You know 3 of 3 words in this batch.')).toBeOnTheScreen();
+    expect(screen.queryByRole('button', { name: /^Practise/ })).toBeNull();
   });
 });
 

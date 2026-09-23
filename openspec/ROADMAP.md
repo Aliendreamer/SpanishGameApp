@@ -24,8 +24,10 @@ Later: undo, English → Spanish, hints, topics, showing example sentences
 
 - **Card:** Spanish lemma (with article for nouns); tap to reveal up to 3 English meanings and
   1 example. Swipe right = know it, left = don't; ✓/✗ buttons do the same.
-- **Session:** batches of 100. Right removes the card, left re-queues it ~4 cards later. At the end
-  of a batch: summary + "Continue?" deals the next 100 with the same settings.
+- **Session:** batches of 100, one pass: every card is shown once (changed 2026-09-23 — re-queueing
+  missed words ~4 cards later was too frequent and batches never finished). At the end: a summary
+  with the choice of "Next batch" (words never swiped before) or "Practise the {n} still learning"
+  (one pass over the batch's misses). "It's a match!" only for words missed before the current batch.
 - **Known** = the word's most recent swipe was right. Every swipe is logged (word, direction, time).
 - **Settings:** level Beginner (A1+A2) / Intermediate (B1) / Advanced (B2) / Full (everything,
   including no CEFR); "include lower levels" checkbox (n/a for Full); "include known words" toggle.

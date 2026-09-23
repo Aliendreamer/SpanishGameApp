@@ -74,16 +74,17 @@ describe('getDeck', () => {
     expect(deck.filter((word) => word.partOfSpeech !== 'noun').every((w) => !w.article)).toBe(true);
   });
 
-  test('leaves out known words unless known words are included', async () => {
-    const [first] = await getDeck(db, settings({ level: 'advanced' }));
-    await logSwipe(db, first.key, false);
+  test('leaves out every swiped word, known or still learning, unless known words are included', async () => {
+    const [first, second] = await getDeck(db, settings({ level: 'advanced' }));
     await logSwipe(db, first.key, true);
+    await logSwipe(db, second.key, false);
 
     const without = await getDeck(db, settings({ level: 'advanced' }));
     const withKnown = await getDeck(db, settings({ level: 'advanced', includeKnown: true }));
 
     expect(without.map((word) => word.key)).not.toContain(first.key);
-    expect(withKnown[0].key).toBe(first.key);
+    expect(without.map((word) => word.key)).not.toContain(second.key);
+    expect(withKnown.slice(0, 2).map((word) => word.key)).toEqual([first.key, second.key]);
   });
 
   test('an offset continues where the previous batch ended', async () => {

@@ -22,11 +22,11 @@ describe('swipe log', () => {
     ]);
   });
 
-  test("reports the word's previous swipe: none, then each latest direction", async () => {
-    expect(await logSwipe(db, 'casa|noun', false)).toBeNull();
-    expect(await logSwipe(db, 'casa|noun', true)).toBe('left');
-    expect(await logSwipe(db, 'casa|noun', true)).toBe('right');
-    expect(await logSwipe(db, 'mesa|noun', true)).toBeNull();
+  test("reports the word's previous swipe and when it was: none, then each latest", async () => {
+    expect(await logSwipe(db, 'casa|noun', false, 10)).toBeNull();
+    expect(await logSwipe(db, 'casa|noun', true, 20)).toEqual({ direction: 'left', at: 10 });
+    expect(await logSwipe(db, 'casa|noun', true, 30)).toEqual({ direction: 'right', at: 20 });
+    expect(await logSwipe(db, 'mesa|noun', true, 40)).toBeNull();
   });
 
   test('saves answers given at the same time, each with its own previous swipe', async () => {
@@ -37,7 +37,7 @@ describe('swipe log', () => {
       logSwipe(db, 'mesa|noun', true),
     ]);
 
-    expect(previous).toEqual(['left', null]);
+    expect(previous.map((swipe) => swipe?.direction ?? null)).toEqual(['left', null]);
     expect(await db.getFirstAsync('SELECT count(*) AS n FROM swipes')).toEqual({ n: 3 });
   });
 

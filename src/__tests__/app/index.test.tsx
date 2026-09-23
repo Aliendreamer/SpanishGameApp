@@ -335,6 +335,28 @@ describe('launch routing', () => {
     expect(screen.getByText(/^1 of /)).toBeOnTheScreen();
   });
 
+  test('a word missed after this batch was dealt shows no match overlay', async () => {
+    await renderApp('/swipe', { ...done, showTutorial: false });
+    const card = await screen.findByRole('button', { name: /^Card:/ });
+    const lemma = String(card.props.accessibilityLabel).replace('Card: ', '');
+    const { key } = (await mockDb.getFirstAsync<{ key: string }>(
+      'SELECT key FROM vocab.vocabulary WHERE spanish = ? AND cefr IS NOT NULL',
+      [lemma],
+    ))!;
+    // A "Still learning" dated after the deal stands in for a miss in this batch.
+    await mockDb.runAsync("INSERT INTO swipes (key, direction, at) VALUES (?, 'left', ?)", [
+      key,
+      Date.now() + 60_000,
+    ]);
+
+    await fireEvent.press(screen.getByRole('button', { name: 'I know it' }));
+    await waitFor(async () =>
+      expect(await mockDb.getFirstAsync('SELECT count(*) AS n FROM swipes')).toEqual({ n: 2 }),
+    );
+
+    expect(screen.queryByRole('header', { name: "It's a match!" })).toBeNull();
+  });
+
   describe('Settings tab', () => {
     const openSettingsFromSwipe = async () => {
       const app = await renderApp('/swipe', { ...done, showTutorial: false });
