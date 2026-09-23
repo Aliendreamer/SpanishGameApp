@@ -45,6 +45,8 @@ export function Swipe({
   const lastSave = useRef<Promise<void>>(Promise.resolve());
 
   const word = batch.queue[0];
+  // Progress through the pass: every answer counts, so a batch ends at size / size.
+  const answered = batch.size - batch.queue.length;
 
   // Called once the card has flown out.
   const answer = (knowIt: boolean) => {
@@ -82,8 +84,8 @@ export function Swipe({
           </Text>
         </View>
         <View style={styles.progress}>
-          <Text style={styles.progressText}>{`${batch.known} / ${batch.size}`}</Text>
-          <ProgressRing value={batch.known} max={batch.size} />
+          <Text style={styles.progressText}>{`${answered} / ${batch.size}`}</Text>
+          <ProgressRing value={answered} max={batch.size} />
         </View>
       </View>
       {saveFailed && (

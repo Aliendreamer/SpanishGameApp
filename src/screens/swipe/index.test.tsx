@@ -85,7 +85,8 @@ describe('<Swipe />', () => {
 
     await learn();
     expect(onAnswer).toHaveBeenCalledWith(words[0], false);
-    expect(screen.getByText('0 / 3')).toBeOnTheScreen();
+    // Every answer counts toward the batch, not only "I know it".
+    expect(screen.getByText('1 / 3')).toBeOnTheScreen();
 
     await know(); // mesa
     await know(); // silla
@@ -110,6 +111,7 @@ describe('<Swipe />', () => {
     await know(); // mesa
     await know(); // silla
 
+    expect(screen.getByText('3 / 3')).toBeOnTheScreen();
     expect(screen.getByText('You know 2 of 3 words in this batch.')).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('button', { name: 'Practise the 1 still learning' }));
 
