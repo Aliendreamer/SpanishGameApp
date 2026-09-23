@@ -1,5 +1,5 @@
 Dev-flow specifics (CLAUDE.md has the rules; this is the how):
-- Sequence: superpowers:brainstorming -> /opsx:propose <kebab-name> -> user OKs proposal -> /opsx:apply <name> -> /simplify -> /code-review -> gates -> report -> user verifies -> /opsx:archive <name> -> commit.
+- Sequence: superpowers:brainstorming -> /opsx:propose <kebab-name> -> user OKs proposal -> /opsx:apply <name> -> /simplify -> /code-review -> gates -> /opsx:archive <name> -> commit (no approval needed) -> report -> user verifies -> push only when the user says so.
 - TDD = red-green-refactor: run the failing test and show it fail before writing code.
 - Commit message for a change: <type>(<scope>): <summary>, where type is feat/fix/refactor/test/docs/chore and scope is the OpenSpec change name; body links openspec/changes/archive/<dated-name>/.
-- Done = tasks.md fully checked, gates green with output shown, user approved the verified change (e.g. "looks great") — then archive, sync, and commit without asking again.
+- Done = tasks.md fully checked, gates green with output shown, archived and committed. Never ask to approve a commit or its message; only git push needs the user's OK.

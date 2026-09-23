@@ -80,7 +80,7 @@ Changes are planned with OpenSpec (`openspec/`, schema `spec-driven`). Specs liv
 
 ## How developer-flow runs in this repo
 
-Superpowers does the thinking, OpenSpec holds the specs, and the user owns every commit. These
+Superpowers does the thinking, OpenSpec holds the specs, and the user owns every push. These
 rules override the superpowers skills' defaults where they conflict:
 
 1. **Think — `superpowers:brainstorming`.** Discuss until the design is agreed, then stop. Do
@@ -94,11 +94,11 @@ rules override the superpowers skills' defaults where they conflict:
    `superpowers:executing-plans` or `superpowers:subagent-driven-development` unless the user asks;
    if they do, skip every commit step those skills prescribe.
 4. **Simplify, review, gates, report** — as in `developer-flow`.
-5. **Commit on the user's approval.** No `git commit`, `git push`, or branch-finishing skill
-   until the user has manually verified the change and approved it. Once every task is done and
-   the gates are green, an approval such as "looks great" is the go-ahead: run `/opsx:archive`
-   (with spec sync) and make one Conventional Commit for the whole change (archived OpenSpec
-   folder included), without asking again. Never push unless asked.
+5. **Commit freely; push only on approval.** Once every task is done and the gates are green, run
+   `/opsx:archive` (with spec sync) and make one Conventional Commit for the whole change
+   (archived OpenSpec folder included) without asking. Never ask the user to approve a commit or its
+   message. `git push` and branch-finishing skills wait until the user has manually verified the
+   change and said to push.
 
 ## Commits and changelog (decided)
 
