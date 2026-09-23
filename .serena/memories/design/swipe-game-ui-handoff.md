@@ -45,7 +45,10 @@ The user designed the app UI in Claude Design and likes it. It is the reference 
   - Reset progress clears ONLY the swipe log (user decision). Username, tutorial, onboarding, level and batch settings stay.
 - Words is done (change `words-screen`, archived 2026-09-23).
   - Lists are ordered most recently swiped first (user choice), queried in `src/vocabulary/word-lists.ts`, and refreshed on tab focus via `useFocusEffect`.
-- Progress tab is a placeholder. NEXT: Progress.
+- Progress is done (change `progress-screen`, archived 2026-09-23), with the streak included (user choice).
+  - Days are local day numbers (`src/progress/stats.ts`).
+  - The streak counts back from yesterday while today has no swipe.
+- All four tabs and onboarding from the handoff are built. Roadmap step 4 is complete.
 - User feedback, not yet acted on: the match overlay feels too frequent. Candidate fixes are to celebrate only words learned across sessions, or to cap it to one every few cards.
 - Shared components: `Checkbox`, `ScreenFrame`, `StepHeading` (optional greeting and body).
 - Game settings live in `progress.db` (user chose SQLite now over AsyncStorage).

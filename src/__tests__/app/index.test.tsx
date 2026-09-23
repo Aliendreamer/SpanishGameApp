@@ -321,6 +321,20 @@ describe('launch routing', () => {
     expect(await screen.findByText('No words match your search.')).toBeOnTheScreen();
   });
 
+  test('after a swipe, Progress shows today as played and the word known', async () => {
+    await renderApp('/swipe', { ...done, showTutorial: false });
+    await screen.findByRole('button', { name: /^Card:/ });
+    await fireEvent.press(screen.getByRole('button', { name: 'I know it' }));
+    await waitFor(async () =>
+      expect(await mockDb.getFirstAsync('SELECT count(*) AS n FROM swipes')).toEqual({ n: 1 }),
+    );
+    await fireEvent.press(screen.getByRole('tab', { name: 'Progress' }));
+
+    expect(await screen.findByText("Today's done. See you tomorrow.")).toBeOnTheScreen();
+    expect(screen.getByText('words known')).toBeOnTheScreen();
+    expect(screen.getByText(/^1 of /)).toBeOnTheScreen();
+  });
+
   describe('Settings tab', () => {
     const openSettingsFromSwipe = async () => {
       const app = await renderApp('/swipe', { ...done, showTutorial: false });

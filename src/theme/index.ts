@@ -24,6 +24,8 @@ export const colors = {
   onRose: '#FBD0DD',
   onRoseHint: '#F7C4D4',
   onRoseSoft: '#FDE3EB',
+  // Outlines on rose (the Progress week row's open days).
+  onRoseOutline: '#F7A8C0',
   // The thin inner frame on rose cards: surface at 55%.
   frameOnRose: 'rgba(255, 246, 248, 0.55)',
   placeholder: '#A8708A',

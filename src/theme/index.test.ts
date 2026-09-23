@@ -23,6 +23,7 @@ describe('theme', () => {
       onRose: '#FBD0DD',
       onRoseHint: '#F7C4D4',
       onRoseSoft: '#FDE3EB',
+      onRoseOutline: '#F7A8C0',
       frameOnRose: 'rgba(255, 246, 248, 0.55)',
       placeholder: '#A8708A',
       bodyStrong: '#5A2A3E',

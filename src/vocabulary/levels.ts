@@ -1,7 +1,9 @@
 import stats from '../../assets/vocabulary/vocabulary-stats.json';
 import type { Level, Settings } from '@/storage/progress-db';
 
-export type CefrLevel = 'A1' | 'A2' | 'B1' | 'B2';
+// The CEFR bands with words in the dictionary, easiest first.
+export const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2'] as const;
+export type CefrLevel = (typeof CEFR_LEVELS)[number];
 
 type LevelDefinition = {
   id: Level;
