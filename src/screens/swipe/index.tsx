@@ -4,30 +4,54 @@ import { StyleSheet, Text, View } from 'react-native';
 import { PrimaryButton } from '@/components/primary-button';
 import { ProgressRing } from '@/components/progress-ring';
 import { SecondaryButton } from '@/components/secondary-button';
+import { EmptyDeck } from '@/screens/swipe/empty';
+import { BatchSummary } from '@/screens/swipe/summary';
 import { SwipeCard, type SwipeCardHandle } from '@/screens/swipe/swipe-card';
 import { colors, fonts, radii, spacing } from '@/theme';
 import type { DeckWord } from '@/vocabulary/deck';
+import { answerCard, batchSummary, startBatch } from '@/vocabulary/queue';
 
 type Props = {
   levelLine: string;
   username: string | null;
-  words: DeckWord[];
+  initialWords: DeckWord[];
+  // Saves an answer; a rejection shows the save-failure banner, the game carries on.
+  onAnswer: (word: DeckWord, knowIt: boolean) => Promise<void>;
+  onNextBatch: () => Promise<DeckWord[]>;
+  onOpenSettings: () => void;
 };
 
 // The Swipe tab (docs/design/swipe-game-ui/README.md, "Swipe tab"): one card at a time — tap to
-// flip, swipe or use the buttons to answer. The queue rules and the summary come in part 3.
-export function Swipe({ levelLine, username, words }: Props) {
-  const [index, setIndex] = useState(0);
-  const [known, setKnown] = useState(0);
+// flip, swipe or use the buttons to answer — until every word of the batch is known.
+export function Swipe({
+  levelLine,
+  username,
+  initialWords,
+  onAnswer,
+  onNextBatch,
+  onOpenSettings,
+}: Props) {
+  const [batch, setBatch] = useState(() => startBatch(initialWords));
+  // Counts answers, so each card mounts fresh even when the same word comes straight back.
+  const [turn, setTurn] = useState(0);
+  const [saveFailed, setSaveFailed] = useState(false);
   const card = useRef<SwipeCardHandle>(null);
 
-  const word = words[index];
-  const left = words.length - index;
+  const word = batch.queue[0];
 
   // Called once the card has flown out.
   const answer = (knowIt: boolean) => {
-    if (knowIt) setKnown(known + 1);
-    setIndex(index + 1);
+    setBatch(answerCard(batch, knowIt));
+    setTurn(turn + 1);
+    onAnswer(word, knowIt).then(
+      () => setSaveFailed(false),
+      () => setSaveFailed(true),
+    );
+  };
+
+  const nextBatch = async () => {
+    setBatch(startBatch(await onNextBatch()));
+    setTurn(turn + 1);
   };
 
   return (
@@ -42,18 +66,29 @@ export function Swipe({ levelLine, username, words }: Props) {
           </Text>
         </View>
         <View style={styles.progress}>
-          <Text style={styles.progressText}>{`${known} / ${words.length}`}</Text>
-          <ProgressRing value={known} max={words.length} />
+          <Text style={styles.progressText}>{`${batch.known} / ${batch.size}`}</Text>
+          <ProgressRing value={batch.known} max={batch.size} />
         </View>
       </View>
+      {saveFailed && (
+        <View accessibilityRole="alert" style={styles.banner}>
+          <Text style={styles.bannerText}>{"Couldn't save your last answer."}</Text>
+        </View>
+      )}
 
-      {word ? (
+      {batch.size === 0 ? (
+        <EmptyDeck onOpenSettings={onOpenSettings} />
+      ) : !word ? (
+        <BatchSummary
+          summary={batchSummary(batch)}
+          onContinue={nextBatch}
+          onOpenSettings={onOpenSettings}
+        />
+      ) : (
         <>
           <View style={styles.cardArea}>
-            {left > 1 && <View testID="next-card" style={styles.nextCard} />}
-            {/* Keyed per answer: each card mounts fresh, centred and front-side up, even when the
-                same word comes straight back. */}
-            <SwipeCard ref={card} key={`${index}:${word.key}`} word={word} onAnswer={answer} />
+            {batch.queue.length > 1 && <View testID="next-card" style={styles.nextCard} />}
+            <SwipeCard ref={card} key={turn} word={word} onAnswer={answer} />
           </View>
           <View style={styles.buttons}>
             <View style={styles.button}>
@@ -64,10 +99,6 @@ export function Swipe({ levelLine, username, words }: Props) {
             </View>
           </View>
         </>
-      ) : (
-        <View style={styles.done}>
-          <Text style={styles.doneTitle}>Batch done</Text>
-        </View>
       )}
     </View>
   );
@@ -132,15 +163,17 @@ const styles = StyleSheet.create({
   button: {
     flex: 1,
   },
-  done: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: spacing.onboarding,
+  banner: {
+    marginTop: 10,
+    marginHorizontal: spacing.screen,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: radii.row,
+    backgroundColor: colors.ink,
   },
-  doneTitle: {
-    fontFamily: fonts.extraBold,
-    fontSize: 38,
-    letterSpacing: -0.8,
-    color: colors.ink,
+  bannerText: {
+    fontFamily: fonts.semiBold,
+    fontSize: 14,
+    color: colors.surface,
   },
 });

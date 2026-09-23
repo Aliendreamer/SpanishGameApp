@@ -1,4 +1,5 @@
 import type { ProgressDb, Settings } from '@/storage/progress-db';
+import { KNOWN_KEYS } from '@/storage/swipes';
 import { deckBands } from '@/vocabulary/levels';
 
 export const BATCH_SIZE = 100;
@@ -28,21 +29,26 @@ type WordRow = {
 
 const ARTICLES: Record<string, string> = { m: 'el', f: 'la', 'm/f': 'el/la' };
 
-// Words for the saved level settings: level by level (unlevelled last), each level in frequency
-// order — the order the roadmap sets for dealing batches.
+// Words for the saved settings: level by level (unlevelled last), each level in frequency order —
+// the order the roadmap sets for dealing batches. Known words (latest swipe right) are left out
+// unless the settings include them; `offset` skips words already dealt this session.
 export async function getDeck(
   db: ProgressDb,
-  settings: Pick<Settings, 'level' | 'includeLower'>,
-  limit = BATCH_SIZE,
+  settings: Pick<Settings, 'level' | 'includeLower'> & Partial<Pick<Settings, 'includeKnown'>>,
+  { limit = BATCH_SIZE, offset = 0 }: { limit?: number; offset?: number } = {},
 ): Promise<DeckWord[]> {
   const bands = deckBands(settings);
-  const where = bands ? `WHERE cefr IN (${bands.map(() => '?').join(', ')})` : '';
+  const conditions = [
+    ...(bands ? [`cefr IN (${bands.map(() => '?').join(', ')})`] : []),
+    ...(settings.includeKnown ? [] : [`key NOT IN (${KNOWN_KEYS})`]),
+  ];
+  const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
   const rows = await db.getAllAsync<WordRow>(
     `SELECT key, spanish, part_of_speech, gender, cefr, frequency_rank
      FROM vocab.vocabulary ${where}
      ORDER BY cefr IS NULL, cefr, frequency_rank
-     LIMIT ?`,
-    [...(bands ?? []), limit],
+     LIMIT ? OFFSET ?`,
+    [...(bands ?? []), limit, offset],
   );
   if (rows.length === 0) return [];
 
@@ -80,4 +86,19 @@ export async function getDeck(
     meanings: meanings.get(row.key) ?? [],
     example: firstExample.get(row.key) ?? null,
   }));
+}
+
+// Deals batch number `batch` (0-based) of a session. Without known words, answered words drop out,
+// so every batch starts from the top of what is left. With them, batches walk down the level and
+// start over after its last word, rather than dealing nothing.
+export async function dealBatch(
+  db: ProgressDb,
+  settings: Pick<Settings, 'level' | 'includeLower' | 'includeKnown'>,
+  batch: number,
+): Promise<{ batch: number; words: DeckWord[] }> {
+  if (!settings.includeKnown) return { batch: 0, words: await getDeck(db, settings) };
+
+  const words = await getDeck(db, settings, { offset: batch * BATCH_SIZE });
+  if (words.length > 0 || batch === 0) return { batch, words };
+  return { batch: 0, words: await getDeck(db, settings) };
 }

@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
 import { router as appRouter } from 'expo-router';
 import { renderRouter } from 'expo-router/testing-library';
@@ -21,6 +21,9 @@ import TutorialRoute from '@/app/tutorial';
 import { LaunchContext } from '@/launch';
 import type { LaunchPrefs } from '@/storage/prefs';
 import { getSettings, migrate, saveSettings } from '@/storage/progress-db';
+
+// Reanimated's official mock finishes animations at once, so swipe answers land immediately.
+jest.mock('react-native-reanimated', () => jest.requireActual('react-native-reanimated/mock'));
 
 // Routes read progress.db through useSQLiteContext(); give them a real, migrated in-memory one.
 let mockDb: TestDb;
@@ -236,5 +239,30 @@ describe('launch routing', () => {
     await renderApp('/swipe', { ...done, showTutorial: false });
 
     expect(await screen.findByText('Something went wrong')).toBeOnTheScreen();
+  });
+
+  test('an answer on the Swipe tab is saved to the swipe log', async () => {
+    await renderApp('/swipe', { ...done, showTutorial: false });
+    const card = await screen.findByRole('button', { name: /^Card:/ });
+    const lemma = String(card.props.accessibilityLabel).replace('Card: ', '');
+
+    await fireEvent.press(screen.getByRole('button', { name: 'I know it' }));
+
+    await waitFor(async () =>
+      expect(await mockDb.getAllAsync('SELECT key, direction FROM swipes')).toEqual([
+        { key: expect.stringMatching(new RegExp(`^${lemma}\\|`)), direction: 'right' },
+      ]),
+    );
+  });
+
+  test('with every word of the level known, the empty state leads to Settings', async () => {
+    await mockDb.execAsync(
+      "INSERT INTO swipes (key, direction, at) SELECT key, 'right', 0 FROM vocab.vocabulary WHERE cefr IN ('A1', 'A2')",
+    );
+    const { router } = await renderApp('/swipe', { ...done, showTutorial: false });
+
+    await fireEvent.press(await screen.findByRole('button', { name: 'Open settings' }));
+
+    expect(router.getPathname()).toBe('/settings');
   });
 });

@@ -34,6 +34,14 @@ export const MIGRATIONS = [
     include_known INTEGER NOT NULL DEFAULT 0
   );
   INSERT INTO settings (id) VALUES (1);`,
+  // Every answer, append-only; a word's state is its latest swipe (see swipes.ts).
+  `CREATE TABLE swipes (
+    id INTEGER PRIMARY KEY,
+    key TEXT NOT NULL,
+    direction TEXT NOT NULL CHECK (direction IN ('right', 'left')),
+    at INTEGER NOT NULL
+  );
+  CREATE INDEX swipes_key ON swipes (key, id);`,
 ];
 
 export async function migrate(db: ProgressDb): Promise<void> {
