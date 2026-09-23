@@ -3,6 +3,7 @@
     "allow": [
       "Bash(git*)",
       "SKILL(*)",
+      "Bash(git commit*)",
       "mcp__azure-devops__core_list_projects",
       "mcp__azure-devops__search_workitem",
       "mcp__azure-devops__wit_get_work_item",
@@ -15,7 +16,6 @@
       "mcp__plugin_expo_expo__read_documentation"
     ],
     "ask": [
-      "Bash(git commit*)",
       "Bash(git push*)"
     ],
     "deny": [
@@ -97,7 +97,7 @@
     "typescript-lsp@claude-plugins-official": true
   },
   "sandbox": {
-    "enabled": true,
+    "enabled": false,
     "failIfUnavailable": true,
     "allowUnsandboxedCommands": false,
     "network": {
@@ -124,22 +124,6 @@
         "~/.gradle",
         "~/.local/share/pnpm",
         "~/.npm"
-      ]
-    }
-  },
-  "mcpServers": {
-    "serena": {
-      "command": "uvx",
-      "args": [
-        "--from",
-        "git+https://github.com/oraios/serena",
-        "serena",
-        "start-mcp-server",
-        "--context",
-        "claude-code",
-        "--project-from-cwd",
-        "--open-web-dashboard",
-        "false"
       ]
     }
   }
