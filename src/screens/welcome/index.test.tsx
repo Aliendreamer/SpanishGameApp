@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import { Welcome } from '@/screens/welcome';
+import { InBulgarian } from '@/i18n/testing';
 
 describe('<Welcome />', () => {
   test('shows the hero card, the title, and the body', async () => {
@@ -20,5 +21,12 @@ describe('<Welcome />', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Get started' }));
 
     expect(onGetStarted).toHaveBeenCalledTimes(1);
+  });
+
+  test('shows its text in Bulgarian', async () => {
+    await render(<Welcome onGetStarted={() => {}} />, { wrapper: InBulgarian });
+
+    expect(screen.getByText('Учи испански с всяко плъзгане')).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Започни' })).toBeOnTheScreen();
   });
 });

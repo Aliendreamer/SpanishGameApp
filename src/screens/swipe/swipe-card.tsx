@@ -10,6 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
+import { useT } from '@/i18n';
 import { CardBack, CardFront } from '@/screens/swipe/card';
 import {
   dragRotation,
@@ -41,6 +42,7 @@ type Props = {
 // One word card: drag to answer, tap to flip. The screen mounts a fresh one per word, so every card
 // starts centred and front-side up.
 export function SwipeCard({ word, onAnswer, ref }: Props) {
+  const t = useT();
   const dx = useSharedValue(0);
   // 0 = front, 1 = back; animates the 3D flip.
   const turn = useSharedValue(0);
@@ -112,12 +114,12 @@ export function SwipeCard({ word, onAnswer, ref }: Props) {
       <Animated.View
         accessible
         accessibilityRole="button"
-        accessibilityLabel={`Card: ${word.lemma}`}
-        accessibilityHint={flipped ? 'Shows the word' : 'Shows the meaning'}
+        accessibilityLabel={t.swipe.cardLabel(word.lemma)}
+        accessibilityHint={flipped ? t.swipe.showsWord : t.swipe.showsMeaning}
         accessibilityActions={[
           { name: 'activate' },
-          { name: 'know', label: 'I know it' },
-          { name: 'learn', label: 'Still learning' },
+          { name: 'know', label: t.swipe.know },
+          { name: 'learn', label: t.swipe.learn },
         ]}
         onAccessibilityAction={({ nativeEvent }) => {
           if (nativeEvent.actionName === 'activate') flip();
@@ -141,10 +143,10 @@ export function SwipeCard({ word, onAnswer, ref }: Props) {
           <CardBack word={word} />
         </Animated.View>
         <Animated.View style={[styles.stamp, styles.knowStamp, knowStamp]} pointerEvents="none">
-          <Text style={styles.stampText}>I know it</Text>
+          <Text style={styles.stampText}>{t.swipe.know}</Text>
         </Animated.View>
         <Animated.View style={[styles.stamp, styles.learnStamp, learnStamp]} pointerEvents="none">
-          <Text style={styles.stampText}>Still learning</Text>
+          <Text style={styles.stampText}>{t.swipe.learn}</Text>
         </Animated.View>
       </Animated.View>
     </GestureDetector>

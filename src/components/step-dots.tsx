@@ -1,6 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
+import { useT } from '@/i18n';
 import { colors } from '@/theme';
 
 type Props = {
@@ -14,8 +15,10 @@ const DOT_WIDTH = 8;
 
 // Onboarding progress: the current step's dot widens, done and current dots are rose.
 export function StepDots({ count, active }: Props) {
+  const t = useT();
+
   return (
-    <View accessible accessibilityLabel={`Step ${active + 1} of ${count}`} style={styles.row}>
+    <View accessible accessibilityLabel={t.common.stepOf(active + 1, count)} style={styles.row}>
       {Array.from({ length: count }, (_, index) => (
         <Dot key={index} isActive={index === active} isReached={index <= active} />
       ))}

@@ -15,15 +15,22 @@ jest.mock('@/storage/prefs', () => ({
   ...jest.requireActual('@/storage/prefs'),
   getLaunchPrefs: jest.fn(),
 }));
-// The app's Stack stands in as text that also shows the launch prefs it can see.
+// The app's Stack stands in as text that also shows the launch prefs and the language it can see.
 jest.mock('expo-router', () => {
   const { Text: MockText } = jest.requireActual('react-native');
   const { useContext } = jest.requireActual('react');
   const { LaunchContext } = jest.requireActual('@/launch');
+  const { useT } = jest.requireActual('@/i18n');
   return {
     Stack: () => {
       const { username } = useContext(LaunchContext);
-      return <MockText>{`stack for ${username}`}</MockText>;
+      const t = useT();
+      return (
+        <>
+          <MockText>{`stack for ${username}`}</MockText>
+          <MockText>{`tab ${t.tabs.settings}`}</MockText>
+        </>
+      );
     },
   };
 });
@@ -53,7 +60,12 @@ jest.mock('expo-sqlite', () => {
 
 const mockUseFonts = jest.mocked(useFonts);
 const mockGetLaunchPrefs = jest.mocked(getLaunchPrefs);
-const ana: LaunchPrefs = { username: 'Ana', onboardingDone: true, showTutorial: true };
+const ana: LaunchPrefs = {
+  username: 'Ana',
+  onboardingDone: true,
+  showTutorial: true,
+  language: 'en',
+};
 
 describe('<RootLayout />', () => {
   beforeEach(() => {
@@ -85,6 +97,15 @@ describe('<RootLayout />', () => {
 
     expect(screen.getByText('stack for Ana')).toBeOnTheScreen();
     expect(SplashScreen.hideAsync).toHaveBeenCalledTimes(1);
+  });
+
+  test('shows the app in the saved language from the first frame', async () => {
+    mockUseFonts.mockReturnValue([true, null]);
+    mockGetLaunchPrefs.mockResolvedValue({ ...ana, language: 'bg' });
+
+    await render(<RootLayout />);
+
+    expect(await screen.findByText('tab Настройки')).toBeOnTheScreen();
   });
 
   test('falls back to first-launch prefs if they cannot be read', async () => {
@@ -125,5 +146,15 @@ describe('<RootLayout />', () => {
     expect(await screen.findByText('Something went wrong')).toBeOnTheScreen();
     expect(screen.queryByText(/^stack/)).toBeNull();
     expect(SplashScreen.hideAsync).toHaveBeenCalled();
+  });
+
+  test('shows the startup error in the saved language', async () => {
+    mockUseFonts.mockReturnValue([true, null]);
+    mockGetLaunchPrefs.mockResolvedValue({ ...ana, language: 'bg' });
+    mockInitError = new Error('disk full');
+
+    await render(<RootLayout />);
+
+    expect(await screen.findByText('Нещо се обърка')).toBeOnTheScreen();
   });
 });

@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
+import { InBulgarian } from '@/i18n/testing';
 import { HowItWorks } from '@/screens/how-it-works';
 
 const tutorialBox = () =>
@@ -17,7 +18,7 @@ describe('<HowItWorks />', () => {
     expect(screen.getByText('Swipe right if you know it')).toBeOnTheScreen();
     expect(screen.getByText('The word leaves this batch.')).toBeOnTheScreen();
     expect(screen.getByText("Swipe left if you're still learning")).toBeOnTheScreen();
-    expect(screen.getByText('It comes back a few cards later.')).toBeOnTheScreen();
+    expect(screen.getByText('You can practise it at the end of the batch.')).toBeOnTheScreen();
   });
 
   test('shows the greeting only when given one', async () => {
@@ -40,5 +41,17 @@ describe('<HowItWorks />', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Start swiping' }));
 
     expect(onStart).toHaveBeenCalledWith(false);
+  });
+
+  test('shows its text in Bulgarian', async () => {
+    await render(<HowItWorks initialShowTutorial onStart={() => {}} />, { wrapper: InBulgarian });
+
+    expect(screen.getByText('Как работи')).toBeOnTheScreen();
+    expect(screen.getByText('Плъзни наляво, ако още я учиш')).toBeOnTheScreen();
+    expect(screen.getByText('Можеш да я упражниш в края на серията.')).toBeOnTheScreen();
+    expect(
+      screen.getByRole('checkbox', { name: 'Показвай този екран при стартиране' }),
+    ).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Започни да плъзгаш' })).toBeOnTheScreen();
   });
 });

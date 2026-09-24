@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
+import { InBulgarian } from '@/i18n/testing';
 import { Settings } from '@/screens/settings';
 import type { Settings as GameSettings } from '@/storage/progress-db';
 
@@ -10,15 +11,19 @@ const saved: GameSettings = {
   wordType: 'all',
 };
 
-async function renderSettings(settings = saved) {
+async function renderSettings(settings = saved, language: 'en' | 'bg' = 'en') {
   const handlers = {
+    onLanguageChange: jest.fn(),
     onSaveUsername: jest.fn(),
     onShowTutorialChange: jest.fn(),
     onViewTutorial: jest.fn(),
     onSettingsChange: jest.fn(),
     onResetProgress: jest.fn(async () => {}),
   };
-  await render(<Settings username="Ana" showTutorial settings={settings} {...handlers} />);
+  await render(
+    <Settings language={language} username="Ana" showTutorial settings={settings} {...handlers} />,
+    { wrapper: language === 'bg' ? InBulgarian : undefined },
+  );
   return handlers;
 }
 const field = () => screen.getByPlaceholderText('Username');
@@ -82,7 +87,7 @@ describe('<Settings />', () => {
   test('the word type section offers all words and the three groups, and saves a choice', async () => {
     const { onSettingsChange } = await renderSettings();
 
-    expect(screen.getByRole('header', { name: 'WORD TYPE' })).toBeOnTheScreen();
+    expect(screen.getByRole('header', { name: 'Word type' })).toBeOnTheScreen();
     expect(screen.getByRole('radio', { name: /^All words/ })).toBeChecked();
     await fireEvent.press(screen.getByRole('radio', { name: /^Verbs/ }));
 
@@ -133,5 +138,51 @@ describe('<Settings />', () => {
 
     expect(handlers.onResetProgress).toHaveBeenCalledTimes(2);
     expect(screen.getByText('Progress reset')).toBeOnTheScreen();
+  });
+
+  test('the language section comes first, with the current language selected', async () => {
+    const { onLanguageChange } = await renderSettings();
+
+    expect(
+      screen
+        .getAllByRole('header')
+        .map((header) => header.props.accessibilityLabel ?? header.props.children),
+    ).toEqual([
+      'Settings',
+      'Language',
+      'Profile',
+      'Tutorial',
+      'Level',
+      'Word type',
+      'Batch',
+      'About',
+    ]);
+    expect(screen.getByRole('radio', { name: 'English' })).toBeChecked();
+    expect(screen.getByRole('radio', { name: 'Български' })).not.toBeChecked();
+
+    await fireEvent.press(screen.getByRole('radio', { name: 'Български' }));
+
+    expect(onLanguageChange).toHaveBeenCalledWith('bg');
+  });
+
+  test('shows its text in Bulgarian, with English still named in English', async () => {
+    const { onLanguageChange } = await renderSettings({ ...saved, level: 'full' }, 'bg');
+
+    expect(screen.getByRole('header', { name: 'Настройки' })).toBeOnTheScreen();
+    expect(screen.getByRole('header', { name: 'Език' })).toBeOnTheScreen();
+    expect(screen.getByRole('radio', { name: 'Български' })).toBeChecked();
+    expect(screen.getByPlaceholderText('Потребителско име')).toBeOnTheScreen();
+    expect(screen.getByText('Запазено на този телефон')).toBeOnTheScreen();
+    expect(screen.getByRole('switch', { name: 'Показвай обучението при старт' })).toBeChecked();
+    expect(screen.getByRole('radio', { name: /^Пълен, Всичко · 19\s171 думи$/ })).toBeChecked();
+    expect(screen.getByRole('radio', { name: /^Глаголи/ })).toBeOnTheScreen();
+    expect(screen.getByRole('switch', { name: 'Включи по-ниските нива' })).toBeDisabled();
+    expect(screen.getByText('Не важи за „Пълен“')).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Източници' })).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Нулирай напредъка' })).toBeOnTheScreen();
+
+    await fireEvent.press(screen.getByRole('radio', { name: 'English' }));
+
+    expect(onLanguageChange).toHaveBeenCalledWith('en');
   });
 });

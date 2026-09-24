@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import { CreditsSheet } from '@/components/credits-sheet';
+import { InBulgarian } from '@/i18n/testing';
 
 describe('<CreditsSheet />', () => {
   test('credits every data source', async () => {
@@ -23,5 +24,13 @@ describe('<CreditsSheet />', () => {
     await fireEvent.press(screen.getByTestId('credits-backdrop', { includeHiddenElements: true }));
 
     expect(onClose).toHaveBeenCalledTimes(2);
+  });
+
+  test('credits the sources in Bulgarian', async () => {
+    await render(<CreditsSheet onClose={() => {}} />, { wrapper: InBulgarian });
+
+    expect(screen.getByRole('header', { name: 'Източници' })).toBeOnTheScreen();
+    expect(screen.getByText(/от Wiktionary чрез Doozan/)).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Затвори' })).toBeOnTheScreen();
   });
 });

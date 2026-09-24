@@ -3,16 +3,19 @@ import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { CreditsSheet } from '@/components/credits-sheet';
 import { LinkRow, RadioRow, Section, SwitchRow } from '@/components/settings-rows';
+import { type Language, LANGUAGE_NAMES, LANGUAGES, useT } from '@/i18n';
 import type { Settings as GameSettings } from '@/storage/progress-db';
 import { colors, fonts, radii, spacing } from '@/theme';
-import { isValidUsername, USERNAME_MAX } from '@/utils/username';
-import { LEVELS, WORD_TYPES } from '@/vocabulary/levels';
+import { isValidUsername, USERNAME_MAX, USERNAME_MIN } from '@/utils/username';
+import { levelOptions, wordTypeOptions } from '@/vocabulary/levels';
 
 type Props = {
+  language: Language;
   username: string;
   showTutorial: boolean;
   settings: GameSettings;
   // Called with the trimmed name, only when it is valid.
+  onLanguageChange: (language: Language) => void;
   onSaveUsername: (name: string) => void;
   onShowTutorialChange: (show: boolean) => void;
   onViewTutorial: () => void;
@@ -22,25 +25,22 @@ type Props = {
 };
 
 type ResetState = 'idle' | 'armed' | 'done' | 'failed';
-const RESET_LABELS: Record<ResetState, string> = {
-  idle: 'Reset progress',
-  armed: 'Tap again to reset',
-  done: 'Progress reset',
-  failed: 'Reset failed. Tap to try again',
-};
 
 // The Settings tab (docs/design/swipe-game-ui/README.md, "Settings tab"). Every change is saved at
 // once through the callbacks; the screen keeps the values it shows.
 export function Settings({
+  language,
   username,
   showTutorial: initialShowTutorial,
   settings: initialSettings,
+  onLanguageChange,
   onSaveUsername,
   onShowTutorialChange,
   onViewTutorial,
   onSettingsChange,
   onResetProgress,
 }: Props) {
+  const t = useT();
   const [name, setName] = useState(username);
   const [showTutorial, setShowTutorial] = useState(initialShowTutorial);
   const [settings, setSettings] = useState(initialSettings);
@@ -73,20 +73,32 @@ export function Settings({
   return (
     <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Text accessibilityRole="header" style={styles.title}>
-        Settings
+        {t.settings.title}
       </Text>
 
-      <Section label="PROFILE">
+      {/* Each language is named in itself, so a wrong choice is easy to undo. */}
+      <Section label={t.settings.language}>
+        {LANGUAGES.map((id) => (
+          <RadioRow
+            key={id}
+            label={LANGUAGE_NAMES[id]}
+            selected={language === id}
+            onPress={() => onLanguageChange(id)}
+          />
+        ))}
+      </Section>
+
+      <Section label={t.settings.profile}>
         <View style={styles.profile}>
-          <Text style={styles.fieldLabel}>Username</Text>
+          <Text style={styles.fieldLabel}>{t.common.username}</Text>
           <TextInput
-            accessibilityLabel="Username"
+            accessibilityLabel={t.common.username}
             value={name}
             onChangeText={setName}
             onBlur={saveName}
             onSubmitEditing={saveName}
             maxLength={USERNAME_MAX}
-            placeholder="Username"
+            placeholder={t.common.username}
             placeholderTextColor={colors.placeholder}
             autoCapitalize="words"
             autoCorrect={false}
@@ -94,26 +106,26 @@ export function Settings({
             style={[styles.input, !nameValid && styles.inputError]}
           />
           <Text style={[styles.note, !nameValid && styles.noteError]}>
-            {nameValid ? 'Saved on this phone' : 'Use 2–20 characters'}
+            {nameValid ? t.settings.nameSaved : t.settings.nameRule(USERNAME_MIN, USERNAME_MAX)}
           </Text>
         </View>
       </Section>
 
-      <Section label="TUTORIAL">
+      <Section label={t.settings.tutorial}>
         <SwitchRow
-          label="Show tutorial at start"
-          detail='Open "How it works" each time the app starts'
+          label={t.settings.showTutorial}
+          detail={t.settings.showTutorialDetail}
           value={showTutorial}
           onValueChange={(show) => {
             setShowTutorial(show);
             onShowTutorialChange(show);
           }}
         />
-        <LinkRow label="View tutorial now" onPress={onViewTutorial} />
+        <LinkRow label={t.settings.viewTutorial} onPress={onViewTutorial} />
       </Section>
 
-      <Section label="LEVEL">
-        {LEVELS.map(({ id, label, detail }) => (
+      <Section label={t.settings.level}>
+        {levelOptions(t).map(({ id, label, detail }) => (
           <RadioRow
             key={id}
             label={label}
@@ -124,8 +136,8 @@ export function Settings({
         ))}
       </Section>
 
-      <Section label="WORD TYPE">
-        {WORD_TYPES.map(({ id, label, detail }) => (
+      <Section label={t.settings.wordType}>
+        {wordTypeOptions(t).map(({ id, label, detail }) => (
           <RadioRow
             key={id}
             label={label}
@@ -136,25 +148,25 @@ export function Settings({
         ))}
       </Section>
 
-      <Section label="BATCH">
+      <Section label={t.settings.batch}>
         <SwitchRow
-          label="Include lower levels"
-          detail={isFull ? 'Not used with Full' : 'Mix in easier words'}
+          label={t.common.includeLower}
+          detail={isFull ? t.settings.lowerNotWithFull : t.settings.lowerDetail}
           value={settings.includeLower && !isFull}
           disabled={isFull}
           onValueChange={(includeLower) => change({ includeLower })}
         />
         <SwitchRow
-          label="Include known words"
-          detail="Review words you already know"
+          label={t.settings.includeKnown}
+          detail={t.settings.includeKnownDetail}
           value={settings.includeKnown}
           onValueChange={(includeKnown) => change({ includeKnown })}
         />
       </Section>
 
-      <Section label="ABOUT">
-        <LinkRow label="Credits" onPress={() => setCreditsOpen(true)} />
-        <LinkRow label={RESET_LABELS[reset]} tone="danger" onPress={pressReset} />
+      <Section label={t.settings.about}>
+        <LinkRow label={t.settings.credits} onPress={() => setCreditsOpen(true)} />
+        <LinkRow label={t.settings.reset[reset]} tone="danger" onPress={pressReset} />
       </Section>
 
       {creditsOpen && <CreditsSheet onClose={() => setCreditsOpen(false)} />}

@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { useT } from '@/i18n';
 import { Checkbox } from '@/components/checkbox';
 import { PrimaryButton } from '@/components/primary-button';
 import { RadioMark } from '@/components/settings-rows';
 import { StepHeading } from '@/components/step-heading';
 import type { Settings } from '@/storage/progress-db';
 import { colors, fonts, radii } from '@/theme';
-import { LEVELS } from '@/vocabulary/levels';
+import { levelOptions } from '@/vocabulary/levels';
 
 export type LevelChoice = Pick<Settings, 'level' | 'includeLower'>;
 
@@ -18,6 +19,7 @@ type Props = {
 
 // Onboarding step 3 of 4 (docs/design/swipe-game-ui/README.md, "Pick your level").
 export function LevelPicker({ initial, onContinue }: Props) {
+  const t = useT();
   const [level, setLevel] = useState(initial.level);
   const [includeLower, setIncludeLower] = useState(initial.includeLower);
   // "Include lower levels" means nothing for Full, which already has everything.
@@ -25,9 +27,9 @@ export function LevelPicker({ initial, onContinue }: Props) {
 
   return (
     <View style={styles.content}>
-      <StepHeading title="Pick your level" body="You can change this any time in Settings." />
+      <StepHeading title={t.level.title} body={t.level.body} />
       <View accessibilityRole="radiogroup" style={styles.options}>
-        {LEVELS.map(({ id, label, detail }) => {
+        {levelOptions(t).map(({ id, label, detail }) => {
           const selected = id === level;
           return (
             <Pressable
@@ -48,13 +50,16 @@ export function LevelPicker({ initial, onContinue }: Props) {
         })}
       </View>
       <Checkbox
-        label="Include lower levels"
+        label={t.common.includeLower}
         checked={includeLower}
         disabled={lowerDisabled}
         onToggle={() => setIncludeLower(!includeLower)}
       />
       <View style={styles.footer}>
-        <PrimaryButton label="Continue" onPress={() => onContinue({ level, includeLower })} />
+        <PrimaryButton
+          label={t.common.continue}
+          onPress={() => onContinue({ level, includeLower })}
+        />
       </View>
     </View>
   );

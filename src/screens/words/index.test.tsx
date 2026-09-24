@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
+import { InBulgarian } from '@/i18n/testing';
 import { Words } from '@/screens/words';
 import type { ListedWord, WordState } from '@/vocabulary/word-lists';
 
@@ -81,5 +82,31 @@ describe('<Words />', () => {
   test('says when a search finds nothing', async () => {
     await renderWords({ query: 'zzz', words: [] });
     expect(screen.getByText('No words match your search.')).toBeOnTheScreen();
+  });
+
+  test('shows its text in Bulgarian, with the words and meanings as they are', async () => {
+    const props = {
+      counts: { known: 1200, learning: 0 },
+      onStateChange: jest.fn(),
+      query: '',
+      onQueryChange: jest.fn(),
+    };
+    await render(<Words {...props} state="known" words={[mesa]} />, { wrapper: InBulgarian });
+
+    expect(screen.getByRole('header', { name: 'Моите думи' })).toBeOnTheScreen();
+    expect(screen.getByRole('tab', { name: 'Познати · 1200' })).toBeOnTheScreen();
+    expect(screen.getByRole('tab', { name: 'За учене · 0' })).toBeOnTheScreen();
+    expect(screen.getByPlaceholderText('Търси на испански или английски')).toBeOnTheScreen();
+    expect(screen.getByText('table, dinner table')).toBeOnTheScreen();
+
+    await render(<Words {...props} state="learning" words={[]} />, { wrapper: InBulgarian });
+    expect(
+      screen.getByText('Думите, които плъзнеш наляво, стоят тук, докато ги научиш.'),
+    ).toBeOnTheScreen();
+
+    await render(<Words {...props} state="known" query="zz" words={[]} />, {
+      wrapper: InBulgarian,
+    });
+    expect(screen.getByText('Няма думи за това търсене.')).toBeOnTheScreen();
   });
 });

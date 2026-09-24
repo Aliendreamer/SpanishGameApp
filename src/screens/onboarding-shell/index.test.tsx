@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import { Text } from 'react-native';
 
 import { OnboardingShell } from '@/screens/onboarding-shell';
+import { InBulgarian } from '@/i18n/testing';
 
 describe('<OnboardingShell />', () => {
   test('shows the step dots and the step content, and no Back unless asked', async () => {
@@ -27,5 +28,17 @@ describe('<OnboardingShell />', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Back' }));
 
     expect(onBack).toHaveBeenCalledTimes(1);
+  });
+
+  test('shows Back and the step in Bulgarian', async () => {
+    await render(
+      <OnboardingShell step={1} count={4} showBack onBack={() => {}}>
+        <Text>content</Text>
+      </OnboardingShell>,
+      { wrapper: InBulgarian },
+    );
+
+    expect(screen.getByRole('button', { name: 'Назад' })).toBeOnTheScreen();
+    expect(screen.getByLabelText('Стъпка 2 от 4')).toBeOnTheScreen();
   });
 });

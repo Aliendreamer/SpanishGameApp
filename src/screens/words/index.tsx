@@ -1,5 +1,6 @@
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { useT } from '@/i18n';
 import { colors, fonts, radii, spacing } from '@/theme';
 import type { ListedWord, WordState } from '@/vocabulary/word-lists';
 
@@ -12,48 +13,42 @@ type Props = {
   words: ListedWord[];
 };
 
-const LISTS: { state: WordState; label: string; empty: string }[] = [
-  { state: 'known', label: 'Known', empty: 'Words you swipe right on show up here.' },
-  {
-    state: 'learning',
-    label: 'Still learning',
-    empty: 'Words you swipe left on show up here until you know them.',
-  },
-];
+// The two lists, in pill order; their texts are `words.lists` in the string tables.
+const LISTS: WordState[] = ['known', 'learning'];
 
 // "My words" (docs/design/swipe-game-ui/README.md, "Words tab").
 export function Words({ counts, state, onStateChange, query, onQueryChange, words }: Props) {
-  const active = LISTS.find((list) => list.state === state) ?? LISTS[0];
+  const t = useT();
 
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
         <Text accessibilityRole="header" style={styles.title}>
-          My words
+          {t.words.title}
         </Text>
         <View accessibilityRole="tablist" style={styles.pills}>
           {LISTS.map((list) => {
-            const selected = list.state === state;
+            const selected = list === state;
             return (
               <Pressable
-                key={list.state}
+                key={list}
                 accessibilityRole="tab"
                 accessibilityState={{ selected }}
-                onPress={() => onStateChange(list.state)}
+                onPress={() => onStateChange(list)}
                 style={[styles.pill, selected && styles.pillActive]}
               >
                 <Text style={[styles.pillText, selected && styles.pillTextActive]}>
-                  {`${list.label} · ${counts[list.state]}`}
+                  {`${t.words.lists[list].label} · ${t.common.number(counts[list])}`}
                 </Text>
               </Pressable>
             );
           })}
         </View>
         <TextInput
-          accessibilityLabel="Search Spanish or English"
+          accessibilityLabel={t.words.search}
           value={query}
           onChangeText={onQueryChange}
-          placeholder="Search Spanish or English"
+          placeholder={t.words.search}
           placeholderTextColor={colors.placeholder}
           autoCapitalize="none"
           autoCorrect={false}
@@ -69,7 +64,7 @@ export function Words({ counts, state, onStateChange, query, onQueryChange, word
         renderItem={({ item }) => <WordRow word={item} />}
         ListEmptyComponent={
           <Text style={styles.empty}>
-            {query.trim() ? 'No words match your search.' : active.empty}
+            {query.trim() ? t.words.noMatch : t.words.lists[state].empty}
           </Text>
         }
       />

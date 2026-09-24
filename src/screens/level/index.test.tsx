@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import { type LevelChoice, LevelPicker } from '@/screens/level';
+import { InBulgarian } from '@/i18n/testing';
 
 const beginnerWithLower: LevelChoice = { level: 'beginner', includeLower: true };
 
@@ -59,5 +60,16 @@ describe('<LevelPicker />', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
 
     expect(onContinue).toHaveBeenCalledWith({ level: 'intermediate', includeLower: false });
+  });
+
+  test('shows its text and levels in Bulgarian', async () => {
+    await render(<LevelPicker initial={beginnerWithLower} onContinue={() => {}} />, {
+      wrapper: InBulgarian,
+    });
+
+    expect(screen.getByText('Избери ниво')).toBeOnTheScreen();
+    expect(screen.getByRole('radio', { name: 'Начинаещ, A1 + A2 · 1142 думи' })).toBeOnTheScreen();
+    expect(screen.getByRole('checkbox', { name: 'Включи по-ниските нива' })).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Продължи' })).toBeOnTheScreen();
   });
 });

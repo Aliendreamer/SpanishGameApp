@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
+import { InBulgarian } from '@/i18n/testing';
 import { EmptyDeck } from '@/screens/swipe/empty';
 import { BatchSummary } from '@/screens/swipe/summary';
 
@@ -49,5 +50,34 @@ describe('<EmptyDeck />', () => {
     ).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('button', { name: 'Open settings' }));
     expect(onOpenSettings).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('summary and empty state in Bulgarian', () => {
+  test('the summary counts in Bulgarian', async () => {
+    await render(
+      <BatchSummary
+        summary={{ size: 1, known: 0, learning: 1 }}
+        onNext={jest.fn()}
+        onPractise={jest.fn()}
+        onOpenSettings={jest.fn()}
+      />,
+      { wrapper: InBulgarian },
+    );
+
+    expect(screen.getByRole('header', { name: 'Серията е готова' })).toBeOnTheScreen();
+    expect(screen.getByText('Знаеш 0 от 1 дума в тази серия.')).toBeOnTheScreen();
+    expect(screen.getByText('познати')).toBeOnTheScreen();
+    expect(screen.getByText('за учене')).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Следваща серия' })).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Упражни думите за учене (1)' })).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Промени настройките' })).toBeOnTheScreen();
+  });
+
+  test('the empty state', async () => {
+    await render(<EmptyDeck onOpenSettings={jest.fn()} />, { wrapper: InBulgarian });
+
+    expect(screen.getByRole('header', { name: 'Няма думи за тези настройки' })).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Отвори настройките' })).toBeOnTheScreen();
   });
 });

@@ -2,17 +2,13 @@ import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PrimaryButton } from '@/components/primary-button';
+import { useT } from '@/i18n';
 import { colors, fonts, radii, spacing } from '@/theme';
 
 // Required attribution for the bundled data (docs/design/swipe-game-ui/README.md, "Credits bottom
-// sheet"; assets/vocabulary/DATA-LICENSE.md).
-const CREDITS = [
-  ['Vocabulary', 'from Wiktionary via Doozan, CC BY-SA.'],
-  ['Example sentences', 'from Tatoeba, CC BY, with per-sentence attribution.'],
-  ['Levels', 'from a CEFR word list, free for personal and educational use.'],
-];
-
+// sheet"; assets/vocabulary/DATA-LICENSE.md). The lines live in the string tables.
 export function CreditsSheet({ onClose }: { onClose: () => void }) {
+  const t = useT();
   const { bottom } = useSafeAreaInsets();
 
   return (
@@ -23,16 +19,16 @@ export function CreditsSheet({ onClose }: { onClose: () => void }) {
         <View accessibilityViewIsModal style={[styles.sheet, { paddingBottom: 28 + bottom }]}>
           <View style={styles.grabber} />
           <Text accessibilityRole="header" style={styles.title}>
-            Credits
+            {t.credits.title}
           </Text>
           <View style={styles.lines}>
-            {CREDITS.map(([what, source]) => (
+            {t.credits.sources.map(({ what, source }) => (
               <Text key={what} style={styles.line}>
                 <Text style={styles.what}>{what}</Text> {source}
               </Text>
             ))}
           </View>
-          <PrimaryButton label="Close" onPress={onClose} />
+          <PrimaryButton label={t.credits.close} onPress={onClose} />
         </View>
       </View>
     </Modal>

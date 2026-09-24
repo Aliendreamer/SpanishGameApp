@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   getLaunchPrefs,
   getUsername,
+  saveLanguage,
   saveShowTutorial,
   saveUsername,
   setOnboardingDone,
@@ -30,6 +31,7 @@ describe('prefs', () => {
       username: null,
       onboardingDone: false,
       showTutorial: true,
+      language: 'en',
     });
   });
 
@@ -37,11 +39,19 @@ describe('prefs', () => {
     await saveUsername('Ana');
     await setOnboardingDone();
     await saveShowTutorial(false);
+    await saveLanguage('bg');
 
     expect(await getLaunchPrefs()).toEqual({
       username: 'Ana',
       onboardingDone: true,
       showTutorial: false,
+      language: 'bg',
     });
+  });
+
+  test('an unknown stored language reads as English', async () => {
+    await AsyncStorage.setItem('language', 'fr');
+
+    expect((await getLaunchPrefs()).language).toBe('en');
   });
 });

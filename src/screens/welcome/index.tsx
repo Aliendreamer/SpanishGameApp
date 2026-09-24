@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
+import { useT } from '@/i18n';
 import { PrimaryButton } from '@/components/primary-button';
 import { colors, fonts, radii, shadows } from '@/theme';
 
@@ -10,6 +11,8 @@ type Props = {
 // Onboarding step 1 of 4 (docs/design/swipe-game-ui/README.md, "Welcome"); OnboardingShell
 // supplies the padding and step dots.
 export function Welcome({ onGetStarted }: Props) {
+  const t = useT();
+
   return (
     <View style={styles.content}>
       <View style={styles.hero}>
@@ -22,12 +25,10 @@ export function Welcome({ onGetStarted }: Props) {
         </View>
       </View>
       <View style={styles.copy}>
-        <Text style={styles.title}>Learn Spanish one swipe at a time</Text>
-        <Text style={styles.body}>
-          See a Spanish word, tap for the English meaning, and swipe to sort it.
-        </Text>
+        <Text style={styles.title}>{t.welcome.title}</Text>
+        <Text style={styles.body}>{t.welcome.body}</Text>
       </View>
-      <PrimaryButton label="Get started" onPress={onGetStarted} />
+      <PrimaryButton label={t.welcome.getStarted} onPress={onGetStarted} />
     </View>
   );
 }

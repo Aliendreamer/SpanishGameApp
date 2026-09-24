@@ -12,6 +12,7 @@ import { SQLiteProvider } from 'expo-sqlite';
 import * as SplashScreen from 'expo-splash-screen';
 import { type ReactNode, useEffect, useState } from 'react';
 
+import { LanguageProvider } from '@/i18n';
 import { LaunchContext } from '@/launch';
 import { StartupError } from '@/screens/startup-error';
 import { FIRST_LAUNCH, getLaunchPrefs, type LaunchPrefs } from '@/storage/prefs';
@@ -45,32 +46,32 @@ export default function RootLayout() {
   // A font that fails to load falls back to the system font rather than blocking the app.
   if ((!loaded && error === null) || !launch) return null;
 
-  // Without its data the app can't work, but it must not crash on every launch either.
-  if (dbError) {
-    return (
-      <HideSplash>
-        <StartupError />
-      </HideSplash>
-    );
-  }
-
-  // The provider renders its children only after migrate() has finished.
   return (
-    // Gestures (the swipe card) need their root view around the whole app.
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SQLiteProvider databaseName="progress.db" onInit={initDatabase} onError={setDbError}>
-        <LaunchContext value={launch}>
-          <HideSplash>
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                contentStyle: { backgroundColor: colors.background },
-              }}
-            />
-          </HideSplash>
-        </LaunchContext>
-      </SQLiteProvider>
-    </GestureHandlerRootView>
+    <LanguageProvider initial={launch.language}>
+      {dbError ? (
+        // Without its data the app can't work, but it must not crash on every launch either.
+        <HideSplash>
+          <StartupError />
+        </HideSplash>
+      ) : (
+        // Gestures (the swipe card) need their root view around the whole app. The SQLite provider
+        // renders its children only after migrate() has finished.
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <SQLiteProvider databaseName="progress.db" onInit={initDatabase} onError={setDbError}>
+            <LaunchContext value={launch}>
+              <HideSplash>
+                <Stack
+                  screenOptions={{
+                    headerShown: false,
+                    contentStyle: { backgroundColor: colors.background },
+                  }}
+                />
+              </HideSplash>
+            </LaunchContext>
+          </SQLiteProvider>
+        </GestureHandlerRootView>
+      )}
+    </LanguageProvider>
   );
 }
 

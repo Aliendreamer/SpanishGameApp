@@ -3,14 +3,15 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import { LinkRow, RadioRow, Section, SwitchRow } from '@/components/settings-rows';
 
 describe('settings rows', () => {
-  test('a section shows its label and rows', async () => {
+  test('a section shows its label in capitals, named in sentence case, and its rows', async () => {
     await render(
-      <Section label="TUTORIAL">
+      <Section label="Вид думи">
         <LinkRow label="View tutorial now" onPress={() => {}} />
       </Section>,
     );
 
-    expect(screen.getByRole('header', { name: 'TUTORIAL' })).toBeOnTheScreen();
+    expect(screen.getByText('ВИД ДУМИ')).toBeOnTheScreen();
+    expect(screen.getByRole('header', { name: 'Вид думи' })).toBeOnTheScreen();
     expect(screen.getByRole('button', { name: 'View tutorial now' })).toBeOnTheScreen();
   });
 
@@ -61,5 +62,11 @@ describe('settings rows', () => {
     expect(radio).toBeChecked();
     await fireEvent.press(radio);
     expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  test('a radio row without a detail is named by its label alone', async () => {
+    await render(<RadioRow label="English" selected={false} onPress={() => {}} />);
+
+    expect(screen.getByRole('radio', { name: 'English' })).not.toBeChecked();
   });
 });

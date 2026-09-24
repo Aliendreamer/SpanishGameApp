@@ -3,7 +3,10 @@ import { createContext } from 'react';
 import { FIRST_LAUNCH, type LaunchPrefs } from '@/storage/prefs';
 
 // Where the app opens (docs/design/swipe-game-ui/README.md, "Launch routing").
-export function launchTarget({ onboardingDone, showTutorial }: LaunchPrefs) {
+export function launchTarget({
+  onboardingDone,
+  showTutorial,
+}: Pick<LaunchPrefs, 'onboardingDone' | 'showTutorial'>) {
   if (!onboardingDone) return '/onboarding';
   return showTutorial ? '/tutorial' : '/swipe';
 }

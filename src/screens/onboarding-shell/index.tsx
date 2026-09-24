@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { useT } from '@/i18n';
 import { ScreenFrame } from '@/components/screen-frame';
 import { StepDots } from '@/components/step-dots';
 import { colors, fonts } from '@/theme';
@@ -17,13 +18,15 @@ type Props = {
 // The frame every onboarding step shares: padding, step dots, and Back where the step allows it.
 // The route layout mounts it once, so the dots stay put and animate between steps.
 export function OnboardingShell({ step, count, showBack, onBack, children }: Props) {
+  const t = useT();
+
   return (
     <ScreenFrame>
       <View style={styles.topRow}>
         <StepDots count={count} active={step} />
         {showBack && (
           <Pressable accessibilityRole="button" onPress={onBack} hitSlop={12}>
-            <Text style={styles.back}>Back</Text>
+            <Text style={styles.back}>{t.common.back}</Text>
           </Pressable>
         )}
       </View>

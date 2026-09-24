@@ -1,4 +1,5 @@
 import stats from '../../assets/vocabulary/vocabulary-stats.json';
+import type { Strings } from '@/i18n';
 import type { Level, Settings, WordType } from '@/storage/progress-db';
 
 // The CEFR bands with words in the dictionary, easiest first.
@@ -7,59 +8,55 @@ export type CefrLevel = (typeof CEFR_LEVELS)[number];
 
 type LevelDefinition = {
   id: Level;
-  label: string;
-  detail: string;
   // The CEFR bands this level deals; null means every word, with or without a band.
   cefr: CefrLevel[] | null;
   // The easier bands "Include lower levels" adds.
   below: CefrLevel[];
+  // Words in the level, from the generated vocabulary stats (never hardcoded, so a dictionary
+  // rebuild updates them).
+  count: number;
 };
 
-const formatCount = (count: number) => `${count.toLocaleString('en-US')} words`;
+// A level or word type as the pickers show it, in the interface language.
+type Option<Id> = { id: Id; label: string; detail: string };
+
 const countOf = (levels: CefrLevel[]) =>
   levels.reduce((sum, level) => sum + stats.byLevel[level], 0);
 
-// The level choices, with word counts from the generated vocabulary stats (never hardcoded, so a
-// dictionary rebuild updates them).
-export const LEVELS: LevelDefinition[] = [
-  {
-    id: 'beginner',
-    label: 'Beginner',
-    detail: `A1 + A2 · ${formatCount(countOf(['A1', 'A2']))}`,
-    cefr: ['A1', 'A2'],
-    below: [],
-  },
-  {
-    id: 'intermediate',
-    label: 'Intermediate',
-    detail: `B1 · ${formatCount(countOf(['B1']))}`,
-    cefr: ['B1'],
-    below: ['A1', 'A2'],
-  },
-  {
-    id: 'advanced',
-    label: 'Advanced',
-    detail: `B2 · ${formatCount(countOf(['B2']))}`,
-    cefr: ['B2'],
-    below: ['A1', 'A2', 'B1'],
-  },
-  {
-    id: 'full',
-    label: 'Full',
-    detail: `Everything · ${formatCount(stats.totalWords)}`,
-    cefr: null,
-    below: [],
-  },
+// The level choices, easiest first. Their names live in the string tables.
+const LEVELS: LevelDefinition[] = [
+  { id: 'beginner', cefr: ['A1', 'A2'], below: [], count: countOf(['A1', 'A2']) },
+  { id: 'intermediate', cefr: ['B1'], below: ['A1', 'A2'], count: countOf(['B1']) },
+  { id: 'advanced', cefr: ['B2'], below: ['A1', 'A2', 'B1'], count: countOf(['B2']) },
+  { id: 'full', cefr: null, below: [], count: stats.totalWords },
 ];
 
 // The word types the deck can be limited to: all words, or one of the three big parts of speech
-// (the small ones are only in All words). Counts from the generated vocabulary stats.
-export const WORD_TYPES: { id: WordType; label: string; detail: string }[] = [
-  { id: 'all', label: 'All words', detail: formatCount(stats.totalWords) },
-  { id: 'noun', label: 'Nouns', detail: formatCount(stats.byPartOfSpeech.noun) },
-  { id: 'verb', label: 'Verbs', detail: formatCount(stats.byPartOfSpeech.verb) },
-  { id: 'adjective', label: 'Adjectives', detail: formatCount(stats.byPartOfSpeech.adjective) },
+// (the small ones are only in All words), with their word counts.
+const WORD_TYPES: { id: WordType; count: number }[] = [
+  { id: 'all', count: stats.totalWords },
+  { id: 'noun', count: stats.byPartOfSpeech.noun },
+  { id: 'verb', count: stats.byPartOfSpeech.verb },
+  { id: 'adjective', count: stats.byPartOfSpeech.adjective },
 ];
+
+// "Beginner" / "A1 + A2 · 1,142 words", and so on.
+export function levelOptions(t: Strings): Option<Level>[] {
+  return LEVELS.map(({ id, cefr, count }) => ({
+    id,
+    label: t.levels[id],
+    detail: `${cefr ? cefr.join(' + ') : t.common.everything} · ${t.common.words(count)}`,
+  }));
+}
+
+// "Verbs" / "2,940 words", and so on.
+export function wordTypeOptions(t: Strings): Option<WordType>[] {
+  return WORD_TYPES.map(({ id, count }) => ({
+    id,
+    label: t.wordTypes[id],
+    detail: t.common.words(count),
+  }));
+}
 
 const definition = (level: Level) => LEVELS.find(({ id }) => id === level) ?? LEVELS[0];
 
@@ -76,9 +73,13 @@ export function deckBands({
 // The Swipe header's level line, e.g. "Beginner · A1, A2", "Full", or "Beginner · A1, A2 · Verbs".
 export function levelLine(
   settings: Pick<Settings, 'level' | 'includeLower'> & Partial<Pick<Settings, 'wordType'>>,
+  t: Strings,
 ): string {
   const bands = deckBands(settings);
-  const { label } = definition(settings.level);
-  const type = WORD_TYPES.find(({ id }) => id === settings.wordType && id !== 'all');
-  return [label, ...(bands ? [bands.join(', ')] : []), ...(type ? [type.label] : [])].join(' · ');
+  const { wordType } = settings;
+  return [
+    t.levels[settings.level],
+    ...(bands ? [bands.join(', ')] : []),
+    ...(wordType && wordType !== 'all' ? [t.wordTypes[wordType]] : []),
+  ].join(' · ');
 }

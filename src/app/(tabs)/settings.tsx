@@ -4,6 +4,7 @@ import { use, useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useLanguage } from '@/i18n';
 import { Settings } from '@/screens/settings';
 import { StartupError } from '@/screens/startup-error';
 import { DeckRefreshContext } from '@/state/deck-refresh';
@@ -16,6 +17,8 @@ type Loaded = { username: string; showTutorial: boolean; settings: GameSettings 
 export default function SettingsRoute() {
   const db = useSQLiteContext();
   const { invalidate } = use(DeckRefreshContext);
+  // The language lives above the tabs; changing it re-renders every screen but deals nothing.
+  const { language, setLanguage } = useLanguage();
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [failed, setFailed] = useState(false);
 
@@ -43,6 +46,8 @@ export default function SettingsRoute() {
       {loaded && (
         <Settings
           {...loaded}
+          language={language}
+          onLanguageChange={setLanguage}
           onSaveUsername={(name) => saveUsername(name).catch(() => {})}
           onShowTutorialChange={(show) => saveShowTutorial(show).catch(() => {})}
           onViewTutorial={() => router.push('/tutorial')}

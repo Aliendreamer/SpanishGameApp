@@ -1,5 +1,6 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { useT } from '@/i18n';
 import { colors, fonts, radii, spacing } from '@/theme';
 
 type LevelProgress = { level: string; known: number; total: number };
@@ -14,37 +15,27 @@ type Props = {
   byLevel: LevelProgress[];
 };
 
-const WEEKDAYS = [
-  ['M', 'Monday'],
-  ['T', 'Tuesday'],
-  ['W', 'Wednesday'],
-  ['T', 'Thursday'],
-  ['F', 'Friday'],
-  ['S', 'Saturday'],
-  ['S', 'Sunday'],
-];
-
-const count = (n: number) => n.toLocaleString('en-US');
-
 // The Progress tab (docs/design/swipe-game-ui/README.md, "Progress tab").
 export function Progress({ streak, week, doneToday, swipesToday, wordsKnown, byLevel }: Props) {
+  const t = useT();
+
   return (
     <ScrollView contentContainerStyle={styles.content}>
       <Text accessibilityRole="header" style={styles.title}>
-        Progress
+        {t.progress.title}
       </Text>
 
       <View style={styles.streakCard}>
         <View style={styles.streakLine}>
           <Text style={styles.streakNumber}>{streak}</Text>
-          <Text style={styles.streakLabel}>day streak</Text>
+          <Text style={styles.streakLabel}>{t.progress.streak(streak)}</Text>
         </View>
         <View style={styles.week}>
-          {WEEKDAYS.map(([letter, name], index) => (
+          {t.progress.weekdays.map(({ letter, name }, index) => (
             <View
               key={name}
               accessible
-              accessibilityLabel={`${name}: ${week[index] ? 'played' : 'not played'}`}
+              accessibilityLabel={t.progress.day(name, week[index])}
               style={styles.day}
             >
               <View style={[styles.dayDot, week[index] && styles.dayDotDone]} />
@@ -53,25 +44,23 @@ export function Progress({ streak, week, doneToday, swipesToday, wordsKnown, byL
           ))}
         </View>
         <Text style={styles.streakNote}>
-          {doneToday
-            ? "Today's done. See you tomorrow."
-            : 'Swipe one card today to keep your streak.'}
+          {doneToday ? t.progress.doneToday : t.progress.keepStreak}
         </Text>
       </View>
 
       <View style={styles.tiles}>
         <View style={styles.tile}>
-          <Text style={styles.tileNumber}>{count(swipesToday)}</Text>
-          <Text style={styles.tileLabel}>swipes today</Text>
+          <Text style={styles.tileNumber}>{t.common.number(swipesToday)}</Text>
+          <Text style={styles.tileLabel}>{t.progress.swipesToday(swipesToday)}</Text>
         </View>
         <View style={styles.tile}>
-          <Text style={styles.tileNumber}>{count(wordsKnown)}</Text>
-          <Text style={styles.tileLabel}>words known</Text>
+          <Text style={styles.tileNumber}>{t.common.number(wordsKnown)}</Text>
+          <Text style={styles.tileLabel}>{t.progress.wordsKnown(wordsKnown)}</Text>
         </View>
       </View>
 
       <View style={styles.levels}>
-        <Text style={styles.levelsTitle}>Known by level</Text>
+        <Text style={styles.levelsTitle}>{t.progress.byLevel}</Text>
         {byLevel.map(({ level, known, total }) => {
           // At least a sliver once a word is known, so a first word shows (as in the design).
           const percent = known > 0 ? Math.max(2, (known / Math.max(total, 1)) * 100) : 0;
@@ -79,12 +68,12 @@ export function Progress({ streak, week, doneToday, swipesToday, wordsKnown, byL
             <View key={level} style={styles.level}>
               <View style={styles.levelLine}>
                 <Text style={styles.levelName}>{level}</Text>
-                <Text style={styles.levelCount}>{`${count(known)} of ${count(total)}`}</Text>
+                <Text style={styles.levelCount}>{t.progress.levelCount(known, total)}</Text>
               </View>
               <View
                 accessible
                 accessibilityRole="progressbar"
-                accessibilityLabel={`${level} known`}
+                accessibilityLabel={t.progress.levelKnown(level)}
                 accessibilityValue={{ min: 0, max: total, now: known }}
                 style={styles.bar}
               >

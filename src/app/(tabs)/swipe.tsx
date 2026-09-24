@@ -4,6 +4,7 @@ import { use, useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useT } from '@/i18n';
 import { StartupError } from '@/screens/startup-error';
 import { Swipe } from '@/screens/swipe';
 import { DeckRefreshContext } from '@/state/deck-refresh';
@@ -19,6 +20,7 @@ type Loaded = { settings: Settings; username: string | null; words: DeckWord[]; 
 
 export default function SwipeRoute() {
   const db = useSQLiteContext();
+  const t = useT();
   // Bumped by Settings when the level, batch options, or progress change: deal again.
   const { version } = use(DeckRefreshContext);
   const [loaded, setLoaded] = useState<Loaded | null>(null);
@@ -73,7 +75,7 @@ export default function SwipeRoute() {
           words are here (keying by the live version would restart it with the old ones). */}
       <Swipe
         key={loaded.version}
-        levelLine={levelLine(settings)}
+        levelLine={levelLine(settings, t)}
         username={username}
         initialWords={words}
         // A match: a word missed before this batch is now known (see isMatch).

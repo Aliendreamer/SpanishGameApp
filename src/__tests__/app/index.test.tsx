@@ -18,6 +18,7 @@ import SettingsRoute from '@/app/(tabs)/settings';
 import SwipeRoute from '@/app/(tabs)/swipe';
 import WordsRoute from '@/app/(tabs)/words';
 import TutorialRoute from '@/app/tutorial';
+import { LanguageProvider } from '@/i18n';
 import { LaunchContext } from '@/launch';
 import type { LaunchPrefs } from '@/storage/prefs';
 import { getSettings, migrate, saveSettings } from '@/storage/progress-db';
@@ -44,15 +45,23 @@ const routes = {
   '(tabs)/settings': SettingsRoute,
 };
 
-const firstLaunch: LaunchPrefs = { username: null, onboardingDone: false, showTutorial: true };
+const firstLaunch: LaunchPrefs = {
+  username: null,
+  onboardingDone: false,
+  showTutorial: true,
+  language: 'en',
+};
 
 // renderRouter adds getPathname to the promise that Testing Library 14's render returns, so keep
 // that object and await it separately; awaiting it (or returning it from an async function)
 // drops the helper.
-// The root layout reads the launch prefs; here they come straight from `launch`.
+// The root layout reads the launch prefs and provides the language; here both come straight from
+// `launch`.
 async function renderApp(initialUrl = '/', launch = firstLaunch) {
   const wrapper = ({ children }: { children: ReactNode }) => (
-    <LaunchContext value={launch}>{children}</LaunchContext>
+    <LaunchContext value={launch}>
+      <LanguageProvider initial={launch.language}>{children}</LanguageProvider>
+    </LaunchContext>
   );
   const router = renderRouter(routes, { initialUrl, wrapper });
   await router;
@@ -159,7 +168,12 @@ describe('onboarding routes', () => {
 });
 
 describe('launch routing', () => {
-  const done: LaunchPrefs = { username: 'Ana', onboardingDone: true, showTutorial: true };
+  const done: LaunchPrefs = {
+    username: 'Ana',
+    onboardingDone: true,
+    showTutorial: true,
+    language: 'en',
+  };
 
   // Opens the Swipe tab and marks its first word as answered "Still learning" in an earlier session.
   async function openSwipeWithFirstWordStillLearning() {
@@ -191,6 +205,14 @@ describe('launch routing', () => {
     expect(screen.getByRole('header', { name: 'How it works' })).toBeOnTheScreen();
     expect(screen.queryByLabelText(/^Step /)).toBeNull();
     expect(backLink()).toBeNull();
+  });
+
+  test('the tabs follow the interface language', async () => {
+    await renderApp('/swipe', { ...done, showTutorial: false, language: 'bg' });
+
+    for (const name of ['Карти', 'Думи', 'Напредък', 'Настройки']) {
+      expect(await screen.findByRole('tab', { name })).toBeOnTheScreen();
+    }
   });
 
   test('after onboarding, with the tutorial off, the app opens Swipe', async () => {
@@ -332,7 +354,7 @@ describe('launch routing', () => {
     await fireEvent.press(screen.getByRole('tab', { name: 'Progress' }));
 
     expect(await screen.findByText("Today's done. See you tomorrow.")).toBeOnTheScreen();
-    expect(screen.getByText('words known')).toBeOnTheScreen();
+    expect(screen.getByText('word known')).toBeOnTheScreen();
     expect(screen.getByText(/^1 of /)).toBeOnTheScreen();
   });
 
@@ -381,6 +403,27 @@ describe('launch routing', () => {
       expect(await screen.findByText(/^Intermediate · /)).toBeOnTheScreen();
       // The cards are dealt for the new settings too (B1 only), not just the header.
       expect(await screen.findByText('B1')).toBeOnTheScreen();
+    });
+
+    test('choosing Български switches the app at once and keeps the batch', async () => {
+      await renderApp('/swipe', { ...done, showTutorial: false });
+      await screen.findByRole('button', { name: /^Card:/ });
+      await fireEvent.press(screen.getByRole('button', { name: 'I know it' }));
+      expect(await screen.findByText(/^1 \/ /)).toBeOnTheScreen();
+      const lemma = String(
+        screen.getByRole('button', { name: /^Card:/ }).props.accessibilityLabel,
+      ).replace('Card: ', '');
+      await fireEvent.press(screen.getByRole('tab', { name: 'Settings' }));
+
+      await fireEvent.press(await screen.findByRole('radio', { name: 'Български' }));
+
+      expect(screen.getByRole('header', { name: 'Настройки' })).toBeOnTheScreen();
+      await fireEvent.press(screen.getByRole('tab', { name: 'Карти' }));
+      expect(await screen.findByText('Начинаещ · A1, A2')).toBeOnTheScreen();
+      // Same batch, same card: a language change deals nothing new.
+      expect(screen.getByText(/^1 \/ /)).toBeOnTheScreen();
+      expect(screen.getByRole('button', { name: `Карта: ${lemma}` })).toBeOnTheScreen();
+      expect(await AsyncStorage.getItem('language')).toBe('bg');
     });
 
     test('choosing Verbs makes the Swipe tab deal verbs', async () => {

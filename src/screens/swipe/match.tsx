@@ -1,6 +1,7 @@
 import { Modal, StyleSheet, Text, View } from 'react-native';
 import Animated, { Easing, FadeIn, Keyframe } from 'react-native-reanimated';
 
+import { partOfSpeechName, useT } from '@/i18n';
 import { PrimaryButton } from '@/components/primary-button';
 import { colors, fonts, radii, shadows, spacing } from '@/theme';
 import type { DeckWord } from '@/vocabulary/deck';
@@ -22,6 +23,8 @@ type Props = {
 
 // Shown when a word the user was still learning is answered "I know it".
 export function MatchOverlay({ word, onClose }: Props) {
+  const t = useT();
+
   return (
     <Modal transparent statusBarTranslucent visible onRequestClose={onClose}>
       <Animated.View
@@ -31,16 +34,18 @@ export function MatchOverlay({ word, onClose }: Props) {
       >
         <View style={styles.copy}>
           <Text accessibilityRole="header" style={styles.title}>
-            It&apos;s a match!
+            {t.match.title}
           </Text>
-          <Text style={styles.line}>You were still learning this one. Now you know it.</Text>
+          <Text style={styles.line}>{t.match.line}</Text>
         </View>
         <Animated.View entering={cardEntering} style={styles.card}>
-          <Text style={styles.article}>{word.article ?? word.partOfSpeech}</Text>
+          <Text style={styles.article}>
+            {word.article ?? partOfSpeechName(t, word.partOfSpeech)}
+          </Text>
           <Text style={styles.lemma}>{word.lemma}</Text>
           <Text style={styles.meanings}>{word.meanings.join(', ')}</Text>
         </Animated.View>
-        <PrimaryButton label="Keep swiping" tone="light" onPress={onClose} />
+        <PrimaryButton label={t.match.keepSwiping} tone="light" onPress={onClose} />
       </Animated.View>
     </Modal>
   );

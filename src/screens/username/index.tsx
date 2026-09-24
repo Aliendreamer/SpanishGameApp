@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { useT } from '@/i18n';
 import { PrimaryButton } from '@/components/primary-button';
 import { StepHeading } from '@/components/step-heading';
 import { colors, fonts, radii } from '@/theme';
@@ -13,6 +14,7 @@ type Props = {
 
 // Onboarding step 2 of 4 (docs/design/swipe-game-ui/README.md, "Username").
 export function Username({ onSubmit }: Props) {
+  const t = useT();
   const [name, setName] = useState('');
   // The error waits until the user types or presses Continue, as in the prototype.
   const [touched, setTouched] = useState(false);
@@ -28,10 +30,7 @@ export function Username({ onSubmit }: Props) {
 
   return (
     <View style={styles.content}>
-      <StepHeading
-        title="What should we call you?"
-        body="Pick a username. It stays on this phone."
-      />
+      <StepHeading title={t.username.title} body={t.username.body} />
       <View style={styles.field}>
         <TextInput
           value={name}
@@ -41,7 +40,7 @@ export function Username({ onSubmit }: Props) {
           }}
           onSubmitEditing={submit}
           maxLength={USERNAME_MAX}
-          placeholder="Username"
+          placeholder={t.common.username}
           placeholderTextColor={colors.placeholder}
           autoFocus
           autoCapitalize="words"
@@ -51,14 +50,12 @@ export function Username({ onSubmit }: Props) {
           style={[styles.input, showError && styles.inputError]}
         />
         <View style={styles.meta}>
-          <Text style={styles.error}>
-            {showError ? `Use at least ${USERNAME_MIN} characters` : ''}
-          </Text>
+          <Text style={styles.error}>{showError ? t.username.tooShort(USERNAME_MIN) : ''}</Text>
           <Text style={styles.count}>{`${name.length} / ${USERNAME_MAX}`}</Text>
         </View>
       </View>
       <View style={styles.footer}>
-        <PrimaryButton label="Continue" onPress={submit} dimmed={!valid} />
+        <PrimaryButton label={t.common.continue} onPress={submit} dimmed={!valid} />
       </View>
     </View>
   );

@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
+import { InBulgarian } from '@/i18n/testing';
 import { MatchOverlay } from '@/screens/swipe/match';
 import type { DeckWord } from '@/vocabulary/deck';
 
@@ -47,5 +48,20 @@ describe('<MatchOverlay />', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Keep swiping' }));
 
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  test('celebrates in Bulgarian, naming a word without an article by its part of speech', async () => {
+    await render(
+      <MatchOverlay word={{ ...casa, article: null, partOfSpeech: 'verb' }} onClose={() => {}} />,
+      {
+        wrapper: InBulgarian,
+      },
+    );
+
+    expect(screen.getByRole('header', { name: 'Имаме съвпадение!' })).toBeOnTheScreen();
+    expect(screen.getByText('Тази дума още я учеше. Вече я знаеш.')).toBeOnTheScreen();
+    expect(screen.getByText('глагол')).toBeOnTheScreen();
+    expect(screen.getByText('house, home')).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Продължи' })).toBeOnTheScreen();
   });
 });

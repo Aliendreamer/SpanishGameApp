@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import { Username } from '@/screens/username';
+import { InBulgarian } from '@/i18n/testing';
 
 const ERROR = 'Use at least 2 characters';
 
@@ -63,5 +64,15 @@ describe('<Username />', () => {
     await fireEvent(input, 'submitEditing');
 
     expect(onSubmit).toHaveBeenCalledWith('Ana');
+  });
+
+  test('shows its text and error in Bulgarian', async () => {
+    await render(<Username onSubmit={() => {}} />, { wrapper: InBulgarian });
+
+    expect(screen.getByText('Как да те наричаме?')).toBeOnTheScreen();
+    await fireEvent.changeText(screen.getByPlaceholderText('Потребителско име'), 'A');
+
+    expect(screen.getByText('Поне 2 знака')).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Продължи' })).toBeOnTheScreen();
   });
 });

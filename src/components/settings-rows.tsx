@@ -9,8 +9,9 @@ import { colors, fonts, radii } from '@/theme';
 export function Section({ label, children }: { label: string; children: ReactNode }) {
   return (
     <View style={styles.section}>
-      <Text accessibilityRole="header" style={styles.sectionLabel}>
-        {label}
+      {/* Shown in capitals; screen readers get the sentence-case label, not letter-by-letter caps. */}
+      <Text accessibilityRole="header" accessibilityLabel={label} style={styles.sectionLabel}>
+        {label.toLocaleUpperCase()}
       </Text>
       <View style={styles.card}>
         {Children.toArray(children).map((row, index) => (
@@ -62,13 +63,13 @@ export function SwitchRow({
   );
 }
 
-type RadioRowProps = { label: string; detail: string; selected: boolean; onPress: () => void };
+type RadioRowProps = { label: string; detail?: string; selected: boolean; onPress: () => void };
 
 export function RadioRow({ label, detail, selected, onPress }: RadioRowProps) {
   return (
     <Pressable
       accessibilityRole="radio"
-      accessibilityLabel={`${label}, ${detail}`}
+      accessibilityLabel={detail ? `${label}, ${detail}` : label}
       accessibilityState={{ checked: selected }}
       onPress={onPress}
       style={styles.row}
@@ -102,11 +103,11 @@ export function RadioMark({ selected }: { selected: boolean }) {
   return <View style={styles.radio}>{selected && <View style={styles.radioDot} />}</View>;
 }
 
-function RowText({ label, detail }: { label: string; detail: string }) {
+function RowText({ label, detail }: { label: string; detail?: string }) {
   return (
     <View style={styles.rowText}>
       <Text style={styles.label}>{label}</Text>
-      <Text style={styles.detail}>{detail}</Text>
+      {detail && <Text style={styles.detail}>{detail}</Text>}
     </View>
   );
 }

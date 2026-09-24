@@ -1,0 +1,175 @@
+import type { Strings } from '@/i18n/en';
+import { formatNumber, plural } from '@/i18n/format';
+
+const number = (count: number) => formatNumber(count, 'bg');
+const words = (count: number) => plural(count, 'дума', 'думи');
+
+// Every text the app shows, in Bulgarian. Typed against the English table, so a missing text fails
+// the typecheck. Wording avoids gendered past forms ("плъзнал/а"), since the app never asks.
+export const bg: Strings = {
+  common: {
+    continue: 'Продължи',
+    back: 'Назад',
+    stepOf: (step, count) => `Стъпка ${step} от ${count}`,
+    number,
+    words: (count) => `${number(count)} ${words(count)}`,
+    everything: 'Всичко',
+    username: 'Потребителско име',
+    includeLower: 'Включи по-ниските нива',
+  },
+  tabs: {
+    swipe: 'Карти',
+    words: 'Думи',
+    progress: 'Напредък',
+    settings: 'Настройки',
+  },
+  welcome: {
+    title: 'Учи испански с всяко плъзгане',
+    body: 'Виж испанска дума, докосни я за значението на английски и я плъзни, за да я сортираш.',
+    getStarted: 'Започни',
+  },
+  username: {
+    title: 'Как да те наричаме?',
+    body: 'Избери потребителско име. То остава само на този телефон.',
+    tooShort: (min) => `Поне ${min} ${plural(min, 'знак', 'знака')}`,
+  },
+  level: {
+    title: 'Избери ниво',
+    body: 'Можеш да го смениш по всяко време в Настройки.',
+  },
+  levels: {
+    beginner: 'Начинаещ',
+    intermediate: 'Средно напреднал',
+    advanced: 'Напреднал',
+    full: 'Пълен',
+  },
+  wordTypes: {
+    all: 'Всички думи',
+    noun: 'Съществителни',
+    verb: 'Глаголи',
+    adjective: 'Прилагателни',
+  },
+  partOfSpeech: {
+    noun: 'съществително',
+    verb: 'глагол',
+    adjective: 'прилагателно',
+    adverb: 'наречие',
+    pronoun: 'местоимение',
+    preposition: 'предлог',
+    conjunction: 'съюз',
+    determiner: 'определител',
+    interjection: 'междуметие',
+    numeral: 'числително',
+    other: 'друго',
+  },
+  howItWorks: {
+    title: 'Как работи',
+    rows: [
+      { title: 'Докосни картата', body: 'Обръща се и показва значението на английски и пример.' },
+      { title: 'Плъзни надясно, ако я знаеш', body: 'Думата излиза от тази серия.' },
+      { title: 'Плъзни наляво, ако още я учиш', body: 'Можеш да я упражниш в края на серията.' },
+    ],
+    showAtStart: 'Показвай този екран при стартиране',
+    start: 'Започни да плъзгаш',
+  },
+  swipe: {
+    tapHint: 'Докосни за значението',
+    know: 'Знам я',
+    learn: 'Още я уча',
+    saveFailed: 'Последният отговор не се запази.',
+    cardLabel: (word) => `Карта: ${word}`,
+    showsMeaning: 'Показва значението',
+    showsWord: 'Показва думата',
+  },
+  summary: {
+    title: 'Серията е готова',
+    known: (known, size) => `Знаеш ${known} от ${size} ${words(size)} в тази серия.`,
+    knownTile: 'познати',
+    learningTile: 'за учене',
+    next: 'Следваща серия',
+    practise: (count) => `Упражни думите за учене (${count})`,
+    changeSettings: 'Промени настройките',
+  },
+  empty: {
+    title: 'Няма думи за тези настройки',
+    body: 'Всички думи за тези настройки вече са сортирани. Опитай друго ниво или вид думи, или включи познатите думи.',
+    openSettings: 'Отвори настройките',
+  },
+  match: {
+    title: 'Имаме съвпадение!',
+    line: 'Тази дума още я учеше. Вече я знаеш.',
+    keepSwiping: 'Продължи',
+  },
+  words: {
+    title: 'Моите думи',
+    lists: {
+      known: { label: 'Познати', empty: 'Думите, които плъзнеш надясно, се появяват тук.' },
+      learning: {
+        label: 'За учене',
+        empty: 'Думите, които плъзнеш наляво, стоят тук, докато ги научиш.',
+      },
+    },
+    search: 'Търси на испански или английски',
+    noMatch: 'Няма думи за това търсене.',
+  },
+  progress: {
+    title: 'Напредък',
+    streak: (days) => plural(days, 'ден поред', 'дни поред'),
+    weekdays: [
+      { letter: 'П', name: 'Понеделник' },
+      { letter: 'В', name: 'Вторник' },
+      { letter: 'С', name: 'Сряда' },
+      { letter: 'Ч', name: 'Четвъртък' },
+      { letter: 'П', name: 'Петък' },
+      { letter: 'С', name: 'Събота' },
+      { letter: 'Н', name: 'Неделя' },
+    ],
+    day: (name, played) => `${name}: ${played ? 'играно' : 'неиграно'}`,
+    doneToday: 'Днешният ден е отметнат. До утре!',
+    keepStreak: 'Плъзни поне една карта днес, за да запазиш поредицата.',
+    swipesToday: (count) => plural(count, 'плъзгане днес', 'плъзгания днес'),
+    wordsKnown: (count) => plural(count, 'позната дума', 'познати думи'),
+    byLevel: 'Познати по ниво',
+    levelKnown: (level) => `${level} познати`,
+    levelCount: (known, total) => `${number(known)} от ${number(total)}`,
+  },
+  settings: {
+    title: 'Настройки',
+    language: 'Език',
+    profile: 'Профил',
+    nameSaved: 'Запазено на този телефон',
+    nameRule: (min, max) => `От ${min} до ${max} знака`,
+    tutorial: 'Обучение',
+    showTutorial: 'Показвай обучението при старт',
+    showTutorialDetail: 'Отваря „Как работи“ при всяко стартиране',
+    viewTutorial: 'Виж обучението сега',
+    level: 'Ниво',
+    wordType: 'Вид думи',
+    batch: 'Серия',
+    lowerDetail: 'Добавя по-лесни думи',
+    lowerNotWithFull: 'Не важи за „Пълен“',
+    includeKnown: 'Включи познатите думи',
+    includeKnownDetail: 'Преговор на думите, които вече знаеш',
+    about: 'За приложението',
+    credits: 'Източници',
+    reset: {
+      idle: 'Нулирай напредъка',
+      armed: 'Докосни пак, за да нулираш',
+      done: 'Напредъкът е нулиран',
+      failed: 'Нулирането не успя. Докосни, за да опиташ пак',
+    },
+  },
+  credits: {
+    title: 'Източници',
+    sources: [
+      { what: 'Речник', source: 'от Wiktionary чрез Doozan, CC BY-SA.' },
+      { what: 'Примерни изречения', source: 'от Tatoeba, CC BY, с автор за всяко изречение.' },
+      { what: 'Нива', source: 'от списък с думи по CEFR, свободен за лична и учебна употреба.' },
+    ],
+    close: 'Затвори',
+  },
+  startupError: {
+    title: 'Нещо се обърка',
+    body: 'Приложението не успя да отвори данните си на този телефон. Затвори го и го отвори отново.',
+  },
+};

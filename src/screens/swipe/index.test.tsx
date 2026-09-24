@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
+import { InBulgarian } from '@/i18n/testing';
 import { Swipe } from '@/screens/swipe';
 import type { DeckWord } from '@/vocabulary/deck';
 
@@ -119,7 +120,7 @@ describe('<Swipe />', () => {
     expect(screen.getByText('0 / 1')).toBeOnTheScreen();
     await know(); // casa
 
-    expect(screen.getByText('You know 1 of 1 words in this batch.')).toBeOnTheScreen();
+    expect(screen.getByText('You know 1 of 1 word in this batch.')).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('button', { name: 'Next batch' }));
 
     expect(onNextBatch).toHaveBeenCalledTimes(1);
@@ -189,5 +190,34 @@ describe('<Swipe />', () => {
     await know();
 
     expect(screen.queryByRole('header', { name: "It's a match!" })).toBeNull();
+  });
+
+  test('shows its text in Bulgarian, with the greeting still in Spanish', async () => {
+    const onAnswer = jest.fn(async () => {
+      throw new Error('disk full');
+    });
+    await render(
+      <Swipe
+        levelLine="Начинаещ · A1, A2"
+        username="Ana"
+        initialWords={words}
+        onAnswer={onAnswer}
+        onNextBatch={jest.fn(async () => [])}
+        onOpenSettings={jest.fn()}
+      />,
+      { wrapper: InBulgarian },
+    );
+
+    expect(screen.getByText('Hola, Ana')).toBeOnTheScreen();
+    expect(screen.getByText('Докосни за значението')).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Карта: casa' })).toHaveProp(
+      'accessibilityHint',
+      'Показва значението',
+    );
+    expect(screen.getByRole('button', { name: 'Още я уча' })).toBeOnTheScreen();
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Знам я' }));
+
+    expect(await screen.findByText('Последният отговор не се запази.')).toBeOnTheScreen();
   });
 });

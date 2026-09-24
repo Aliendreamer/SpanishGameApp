@@ -1,21 +1,20 @@
 import { StyleSheet, Text, View } from 'react-native';
 
+import { useT } from '@/i18n';
 import { PrimaryButton } from '@/components/primary-button';
 import { colors, fonts } from '@/theme';
 
 // Nothing left to deal for these settings (docs/design/swipe-game-ui/README.md, "Empty state").
 export function EmptyDeck({ onOpenSettings }: { onOpenSettings: () => void }) {
+  const t = useT();
+
   return (
     <View style={styles.screen}>
       <Text accessibilityRole="header" style={styles.title}>
-        No words match your settings
+        {t.empty.title}
       </Text>
-      <Text style={styles.body}>
-        {
-          "You've already swiped every word for these settings. Try another level or word type, or include known words."
-        }
-      </Text>
-      <PrimaryButton label="Open settings" onPress={onOpenSettings} />
+      <Text style={styles.body}>{t.empty.body}</Text>
+      <PrimaryButton label={t.empty.openSettings} onPress={onOpenSettings} />
     </View>
   );
 }

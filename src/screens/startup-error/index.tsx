@@ -1,20 +1,21 @@
 import { StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useT } from '@/i18n';
 import { colors, fonts, spacing } from '@/theme';
 
 // Full-screen error when the app's data (progress.db, the dictionary) can't be opened or read
 // (roadmap: bad data → full-screen error). There is nothing to retry in-app; reopening is the way
 // out.
 export function StartupError() {
+  const t = useT();
+
   return (
     <SafeAreaView style={styles.screen}>
       <Text accessibilityRole="header" style={styles.title}>
-        Something went wrong
+        {t.startupError.title}
       </Text>
-      <Text style={styles.body}>
-        The app couldn’t open its data on this phone. Close the app and open it again.
-      </Text>
+      <Text style={styles.body}>{t.startupError.body}</Text>
     </SafeAreaView>
   );
 }

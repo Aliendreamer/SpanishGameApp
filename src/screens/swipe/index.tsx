@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { useT } from '@/i18n';
 import { PrimaryButton } from '@/components/primary-button';
 import { ProgressRing } from '@/components/progress-ring';
 import { SecondaryButton } from '@/components/secondary-button';
@@ -33,6 +34,7 @@ export function Swipe({
   onNextBatch,
   onOpenSettings,
 }: Props) {
+  const t = useT();
   const [batch, setBatch] = useState(() => startBatch(initialWords));
   // Counts answers, so each card mounts fresh even when the same word comes straight back.
   const [turn, setTurn] = useState(0);
@@ -90,7 +92,7 @@ export function Swipe({
       </View>
       {saveFailed && (
         <View accessibilityRole="alert" style={styles.banner}>
-          <Text style={styles.bannerText}>{"Couldn't save your last answer."}</Text>
+          <Text style={styles.bannerText}>{t.swipe.saveFailed}</Text>
         </View>
       )}
 
@@ -111,10 +113,10 @@ export function Swipe({
           </View>
           <View style={styles.buttons}>
             <View style={styles.button}>
-              <SecondaryButton label="Still learning" onPress={() => card.current?.answer(false)} />
+              <SecondaryButton label={t.swipe.learn} onPress={() => card.current?.answer(false)} />
             </View>
             <View style={styles.button}>
-              <PrimaryButton label="I know it" onPress={() => card.current?.answer(true)} />
+              <PrimaryButton label={t.swipe.know} onPress={() => card.current?.answer(true)} />
             </View>
           </View>
         </>

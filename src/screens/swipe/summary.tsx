@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
+import { useT } from '@/i18n';
 import { PrimaryButton } from '@/components/primary-button';
 import { SecondaryButton } from '@/components/secondary-button';
 import { colors, fonts, radii, spacing } from '@/theme';
@@ -15,35 +16,31 @@ type Props = {
 
 // "Batch done" after one pass: how it went, then next batch, practise the misses, or settings.
 export function BatchSummary({ summary, onNext, onPractise, onOpenSettings }: Props) {
+  const t = useT();
   return (
     <View style={styles.screen}>
       <View style={styles.copy}>
         <Text accessibilityRole="header" style={styles.title}>
-          Batch done
+          {t.summary.title}
         </Text>
-        <Text style={styles.body}>
-          {`You know ${summary.known} of ${summary.size} words in this batch.`}
-        </Text>
+        <Text style={styles.body}>{t.summary.known(summary.known, summary.size)}</Text>
       </View>
       <View style={styles.tiles}>
         <View style={styles.tile}>
           <Text style={[styles.number, styles.known]}>{summary.known}</Text>
-          <Text style={styles.tileLabel}>known</Text>
+          <Text style={styles.tileLabel}>{t.summary.knownTile}</Text>
         </View>
         <View style={styles.tile}>
           <Text style={styles.number}>{summary.learning}</Text>
-          <Text style={styles.tileLabel}>still learning</Text>
+          <Text style={styles.tileLabel}>{t.summary.learningTile}</Text>
         </View>
       </View>
       <View style={styles.buttons}>
-        <PrimaryButton label="Next batch" onPress={onNext} />
+        <PrimaryButton label={t.summary.next} onPress={onNext} />
         {summary.learning > 0 && (
-          <SecondaryButton
-            label={`Practise the ${summary.learning} still learning`}
-            onPress={onPractise}
-          />
+          <SecondaryButton label={t.summary.practise(summary.learning)} onPress={onPractise} />
         )}
-        <SecondaryButton label="Change settings" onPress={onOpenSettings} />
+        <SecondaryButton label={t.summary.changeSettings} onPress={onOpenSettings} />
       </View>
     </View>
   );

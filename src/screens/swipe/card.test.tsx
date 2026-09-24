@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react-native';
 
+import { InBulgarian } from '@/i18n/testing';
 import { CardBack, CardFront, lemmaSize, meaningSize } from '@/screens/swipe/card';
 import type { DeckWord } from '@/vocabulary/deck';
 
@@ -52,5 +53,29 @@ describe('card back', () => {
     expect(meaningSize(['house', 'home'])).toBe(36);
     expect(meaningSize(['to talk; to speak; to chat'])).toBe(28);
     expect(meaningSize(['to talk; to speak; to communicate using words'])).toBe(22);
+  });
+});
+
+describe('card in Bulgarian', () => {
+  test('translates the tap hint and the part of speech, not the word or its meanings', async () => {
+    await render(
+      <>
+        <CardFront word={casa} />
+        <CardBack word={casa} />
+      </>,
+      { wrapper: InBulgarian },
+    );
+
+    expect(screen.getByText('Докосни за значението')).toBeOnTheScreen();
+    expect(screen.getByText('съществително')).toBeOnTheScreen();
+    expect(screen.getByText('house')).toBeOnTheScreen();
+  });
+
+  test('shows an unknown part of speech as it is', async () => {
+    await render(<CardBack word={{ ...casa, partOfSpeech: 'suffix' }} />, {
+      wrapper: InBulgarian,
+    });
+
+    expect(screen.getByText('suffix')).toBeOnTheScreen();
   });
 });

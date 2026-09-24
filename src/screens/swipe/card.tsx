@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
+import { partOfSpeechName, useT } from '@/i18n';
 import { colors, fonts, radii, shadows } from '@/theme';
 import type { DeckWord } from '@/vocabulary/deck';
 
@@ -16,6 +17,7 @@ export function meaningSize(meanings: string[]) {
 
 // The rose "3a Framed" front (docs/design/swipe-game-ui/README.md, "Swipe card, front").
 export function CardFront({ word }: { word: DeckWord }) {
+  const t = useT();
   const size = lemmaSize(word.lemma);
 
   return (
@@ -31,7 +33,7 @@ export function CardFront({ word }: { word: DeckWord }) {
         >
           {word.lemma}
         </Text>
-        <Text style={styles.hint}>Tap to see the meaning</Text>
+        <Text style={styles.hint}>{t.swipe.tapHint}</Text>
       </View>
     </View>
   );
@@ -39,6 +41,7 @@ export function CardFront({ word }: { word: DeckWord }) {
 
 // The cream back with meanings and one example ("Swipe card, back").
 export function CardBack({ word }: { word: DeckWord }) {
+  const t = useT();
   const size = meaningSize(word.meanings);
 
   return (
@@ -47,7 +50,7 @@ export function CardBack({ word }: { word: DeckWord }) {
         <Text style={styles.backWord}>
           {word.article ? `${word.article} ${word.lemma}` : word.lemma}
         </Text>
-        <Text style={styles.chip}>{word.partOfSpeech}</Text>
+        <Text style={styles.chip}>{partOfSpeechName(t, word.partOfSpeech)}</Text>
       </View>
       <View style={styles.meanings}>
         {word.meanings.map((meaning) => (
