@@ -6,7 +6,7 @@ import { LinkRow, RadioRow, Section, SwitchRow } from '@/components/settings-row
 import type { Settings as GameSettings } from '@/storage/progress-db';
 import { colors, fonts, radii, spacing } from '@/theme';
 import { isValidUsername, USERNAME_MAX } from '@/utils/username';
-import { LEVELS } from '@/vocabulary/levels';
+import { LEVELS, WORD_TYPES } from '@/vocabulary/levels';
 
 type Props = {
   username: string;
@@ -120,6 +120,18 @@ export function Settings({
             detail={detail}
             selected={settings.level === id}
             onPress={() => change({ level: id })}
+          />
+        ))}
+      </Section>
+
+      <Section label="WORD TYPE">
+        {WORD_TYPES.map(({ id, label, detail }) => (
+          <RadioRow
+            key={id}
+            label={label}
+            detail={detail}
+            selected={settings.wordType === id}
+            onPress={() => change({ wordType: id })}
           />
         ))}
       </Section>

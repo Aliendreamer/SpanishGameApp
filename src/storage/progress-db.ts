@@ -10,11 +10,14 @@ export type ProgressDb = Pick<
 >;
 
 export type Level = 'beginner' | 'intermediate' | 'advanced' | 'full';
+// Which part of speech the deck deals; 'all' deals every word.
+export type WordType = 'all' | 'noun' | 'verb' | 'adjective';
 
 export type Settings = {
   level: Level;
   includeLower: boolean;
   includeKnown: boolean;
+  wordType: WordType;
 };
 
 // Matches the column defaults in the first migration.
@@ -22,6 +25,7 @@ export const DEFAULT_SETTINGS: Settings = {
   level: 'beginner',
   includeLower: true,
   includeKnown: false,
+  wordType: 'all',
 };
 
 // Append only: each entry runs once, in order, and PRAGMA user_version records how many have run.
@@ -42,6 +46,8 @@ export const MIGRATIONS = [
     at INTEGER NOT NULL
   );
   CREATE INDEX swipes_key ON swipes (key, id);`,
+  `ALTER TABLE settings ADD COLUMN word_type TEXT NOT NULL DEFAULT 'all'
+    CHECK (word_type IN ('all', 'noun', 'verb', 'adjective'));`,
 ];
 
 export async function migrate(db: ProgressDb): Promise<void> {
@@ -57,17 +63,23 @@ export async function migrate(db: ProgressDb): Promise<void> {
   }
 }
 
-type SettingsRow = { level: Level; include_lower: number; include_known: number };
+type SettingsRow = {
+  level: Level;
+  include_lower: number;
+  include_known: number;
+  word_type: WordType;
+};
 
 export async function getSettings(db: ProgressDb): Promise<Settings> {
   const row = await db.getFirstAsync<SettingsRow>(
-    'SELECT level, include_lower, include_known FROM settings WHERE id = 1',
+    'SELECT level, include_lower, include_known, word_type FROM settings WHERE id = 1',
   );
   if (!row) throw new Error('progress.db has no settings row; was migrate() run?');
   return {
     level: row.level,
     includeLower: row.include_lower === 1,
     includeKnown: row.include_known === 1,
+    wordType: row.word_type,
   };
 }
 
@@ -77,6 +89,7 @@ const COLUMNS: Record<keyof Settings, string> = {
   level: 'level',
   includeLower: 'include_lower',
   includeKnown: 'include_known',
+  wordType: 'word_type',
 };
 
 export async function saveSettings(db: ProgressDb, changes: Partial<Settings>): Promise<void> {

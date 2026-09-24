@@ -87,6 +87,20 @@ describe('getDeck', () => {
     expect(withKnown.slice(0, 2).map((word) => word.key)).toEqual([first.key, second.key]);
   });
 
+  test('deals only the chosen word type, or every type for all words', async () => {
+    const verbs = await getDeck(db, settings({ level: 'beginner', wordType: 'verb' }), {
+      limit: 5000,
+    });
+    const all = await getDeck(db, settings({ level: 'beginner' }), { limit: 5000 });
+
+    expect(verbs.length).toBeGreaterThan(0);
+    expect(verbs.every((word) => word.partOfSpeech === 'verb')).toBe(true);
+    expect(isInDeckOrder(verbs)).toBe(true);
+    expect(
+      ['noun', 'verb', 'adjective'].every((pos) => all.some((w) => w.partOfSpeech === pos)),
+    ).toBe(true);
+  });
+
   test('an offset continues where the previous batch ended', async () => {
     const two = await getDeck(db, settings({ level: 'intermediate' }), { limit: 200 });
     const second = await getDeck(db, settings({ level: 'intermediate' }), { offset: 100 });

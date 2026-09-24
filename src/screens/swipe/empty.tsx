@@ -11,7 +11,9 @@ export function EmptyDeck({ onOpenSettings }: { onOpenSettings: () => void }) {
         No words match your settings
       </Text>
       <Text style={styles.body}>
-        You already know every word at this level. Try another level, or include known words.
+        {
+          "You've already swiped every word for these settings. Try another level or word type, or include known words."
+        }
       </Text>
       <PrimaryButton label="Open settings" onPress={onOpenSettings} />
     </View>

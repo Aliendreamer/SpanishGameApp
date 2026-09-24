@@ -149,6 +149,7 @@ describe('onboarding routes', () => {
       level: 'intermediate',
       includeLower: false,
       includeKnown: false,
+      wordType: 'all',
     });
 
     await fireEvent.press(screen.getByRole('button', { name: 'Back' }));
@@ -380,6 +381,23 @@ describe('launch routing', () => {
       expect(await screen.findByText(/^Intermediate · /)).toBeOnTheScreen();
       // The cards are dealt for the new settings too (B1 only), not just the header.
       expect(await screen.findByText('B1')).toBeOnTheScreen();
+    });
+
+    test('choosing Verbs makes the Swipe tab deal verbs', async () => {
+      await openSettingsFromSwipe();
+
+      await fireEvent.press(await screen.findByRole('radio', { name: /^Verbs/ }));
+      await waitFor(async () => expect((await getSettings(mockDb)).wordType).toBe('verb'));
+      await fireEvent.press(screen.getByRole('tab', { name: 'Swipe' }));
+
+      expect(await screen.findByText('Beginner · A1, A2 · Verbs')).toBeOnTheScreen();
+      const card = await screen.findByRole('button', { name: /^Card:/ });
+      const lemma = String(card.props.accessibilityLabel).replace('Card: ', '');
+      const row = await mockDb.getFirstAsync<{ part_of_speech: string }>(
+        "SELECT part_of_speech FROM vocab.vocabulary WHERE spanish = ? AND part_of_speech = 'verb'",
+        [lemma],
+      );
+      expect(row).toEqual({ part_of_speech: 'verb' });
     });
 
     test('Reset progress clears the swipe log and keeps the settings', async () => {

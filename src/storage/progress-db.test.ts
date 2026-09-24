@@ -39,6 +39,7 @@ describe('settings', () => {
       level: 'beginner',
       includeLower: true,
       includeKnown: false,
+      wordType: 'all',
     });
   });
 
@@ -49,6 +50,7 @@ describe('settings', () => {
       level: 'advanced',
       includeLower: false,
       includeKnown: false,
+      wordType: 'all',
     });
   });
 
@@ -62,6 +64,30 @@ describe('settings', () => {
       level: 'intermediate',
       includeLower: true,
       includeKnown: true,
+      wordType: 'all',
     });
+  });
+
+  test('the word type saves and reads back', async () => {
+    await saveSettings(db, { wordType: 'verb' });
+
+    expect((await getSettings(db)).wordType).toBe('verb');
+  });
+});
+
+describe('migration 3', () => {
+  test('adds the word type to a version 2 database and keeps its settings', async () => {
+    const old = openTestDb();
+    await old.execAsync(MIGRATIONS[0]);
+    await old.execAsync(MIGRATIONS[1]);
+    await old.execAsync('PRAGMA user_version = 2');
+    await old.runAsync("UPDATE settings SET level = 'advanced' WHERE id = 1");
+
+    await migrate(old);
+
+    expect(await getSettings(old)).toEqual(
+      expect.objectContaining({ level: 'advanced', wordType: 'all' }),
+    );
+    old.close();
   });
 });

@@ -3,7 +3,12 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import { Settings } from '@/screens/settings';
 import type { Settings as GameSettings } from '@/storage/progress-db';
 
-const saved: GameSettings = { level: 'advanced', includeLower: false, includeKnown: false };
+const saved: GameSettings = {
+  level: 'advanced',
+  includeLower: false,
+  includeKnown: false,
+  wordType: 'all',
+};
 
 async function renderSettings(settings = saved) {
   const handlers = {
@@ -72,6 +77,19 @@ describe('<Settings />', () => {
     expect(onSettingsChange).toHaveBeenCalledWith({ includeKnown: true });
     expect(screen.getByRole('radio', { name: /^Intermediate/ })).toBeChecked();
     expect(toggle('Include known words')).toBeChecked();
+  });
+
+  test('the word type section offers all words and the three groups, and saves a choice', async () => {
+    const { onSettingsChange } = await renderSettings();
+
+    expect(screen.getByRole('header', { name: 'WORD TYPE' })).toBeOnTheScreen();
+    expect(screen.getByRole('radio', { name: /^All words/ })).toBeChecked();
+    await fireEvent.press(screen.getByRole('radio', { name: /^Verbs/ }));
+
+    expect(onSettingsChange).toHaveBeenCalledWith({ wordType: 'verb' });
+    expect(screen.getByRole('radio', { name: /^Verbs/ })).toBeChecked();
+    expect(screen.getByRole('radio', { name: /^Nouns/ })).toBeOnTheScreen();
+    expect(screen.getByRole('radio', { name: /^Adjectives/ })).toBeOnTheScreen();
   });
 
   test('"Include lower levels" is disabled for Full', async () => {

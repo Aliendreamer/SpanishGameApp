@@ -32,12 +32,15 @@ type WordRow = {
 // settings include known words; `offset` skips words already dealt this session.
 export async function getDeck(
   db: ProgressDb,
-  settings: Pick<Settings, 'level' | 'includeLower'> & Partial<Pick<Settings, 'includeKnown'>>,
+  settings: Pick<Settings, 'level' | 'includeLower'> &
+    Partial<Pick<Settings, 'includeKnown' | 'wordType'>>,
   { limit = BATCH_SIZE, offset = 0 }: { limit?: number; offset?: number } = {},
 ): Promise<DeckWord[]> {
   const bands = deckBands(settings);
+  const wordType = settings.wordType ?? 'all';
   const conditions = [
     ...(bands ? [`cefr IN (${bands.map(() => '?').join(', ')})`] : []),
+    ...(wordType === 'all' ? [] : ['part_of_speech = ?']),
     // New words only: anything swiped before (known or still learning) is left out.
     ...(settings.includeKnown ? [] : ['key NOT IN (SELECT key FROM main.swipes)']),
   ];
@@ -47,7 +50,7 @@ export async function getDeck(
      FROM vocab.vocabulary ${where}
      ORDER BY cefr IS NULL, cefr, frequency_rank
      LIMIT ? OFFSET ?`,
-    [...(bands ?? []), limit, offset],
+    [...(bands ?? []), ...(wordType === 'all' ? [] : [wordType]), limit, offset],
   );
   if (rows.length === 0) return [];
 
@@ -92,7 +95,7 @@ export async function getDeck(
 // start over after its last word, rather than dealing nothing.
 export async function dealBatch(
   db: ProgressDb,
-  settings: Pick<Settings, 'level' | 'includeLower' | 'includeKnown'>,
+  settings: Pick<Settings, 'level' | 'includeLower' | 'includeKnown' | 'wordType'>,
   batch: number,
 ): Promise<{ batch: number; words: DeckWord[] }> {
   if (!settings.includeKnown) return { batch: 0, words: await getDeck(db, settings) };

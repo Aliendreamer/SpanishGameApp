@@ -44,7 +44,7 @@ describe('<EmptyDeck />', () => {
     expect(screen.getByRole('header', { name: 'No words match your settings' })).toBeOnTheScreen();
     expect(
       screen.getByText(
-        'You already know every word at this level. Try another level, or include known words.',
+        "You've already swiped every word for these settings. Try another level or word type, or include known words.",
       ),
     ).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('button', { name: 'Open settings' }));
