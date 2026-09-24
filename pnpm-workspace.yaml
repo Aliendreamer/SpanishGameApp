@@ -8,3 +8,17 @@ savePrefix: ''
 allowBuilds:
   # Ships prebuilt binaries; its postinstall fallback is not needed.
   unrs-resolver: false
+# Temporary (added 2026-09-24 with the user's OK): the Expo 57.0.25 patch set, installed on its
+# release day. Harmless once these are over 24 h old; remove the block then.
+minimumReleaseAgeExclude:
+  - '@expo/cli@57.0.27'
+  - '@expo/router-server@57.0.11'
+  - babel-preset-expo@57.0.13
+  - expo-modules-core@57.0.19
+  - expo-modules-jsi@57.1.1
+  - expo@57.0.25
+  - '@expo/ui@57.0.20'
+  - expo-build-properties@57.0.22
+  - expo-glass-effect@57.0.4
+  - expo-linking@57.0.11
+  - expo-router@57.0.23
