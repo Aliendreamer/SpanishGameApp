@@ -22,9 +22,10 @@ const casa: DeckWord = {
 
 async function renderCard() {
   const onAnswer = jest.fn();
+  const onFlip = jest.fn();
   const ref = createRef<SwipeCardHandle>();
-  await render(<SwipeCard ref={ref} word={casa} onAnswer={onAnswer} />);
-  return { onAnswer, ref };
+  await render(<SwipeCard ref={ref} word={casa} onAnswer={onAnswer} onFlip={onFlip} />);
+  return { onAnswer, onFlip, ref };
 }
 
 // A drag that ends `dx` dp from where it started (`dy` vertically), released or cancelled.
@@ -39,7 +40,7 @@ async function drag(dx: number, { dy = 0, end = State.END }: { dy?: number; end?
 }
 
 describe('<SwipeCard />', () => {
-  test('starts front-side up; a tap (under 6 dp) turns it over', async () => {
+  test('starts front-side up; a tap (under 12 dp) turns it over', async () => {
     const { onAnswer } = await renderCard();
     expect(screen.getByText('Tap to see the meaning')).toBeOnTheScreen();
 
@@ -100,5 +101,37 @@ describe('<SwipeCard />', () => {
 
     expect(onAnswer).toHaveBeenCalledTimes(1);
     expect(onAnswer).toHaveBeenCalledWith(true);
+  });
+
+  test('flip() from the button turns the card over and back, reporting each side', async () => {
+    const { onAnswer, onFlip, ref } = await renderCard();
+
+    await act(async () => ref.current?.flip());
+    expect(screen.getByText('house')).toBeOnTheScreen();
+    expect(onFlip).toHaveBeenLastCalledWith(true);
+
+    await act(async () => ref.current?.flip());
+    expect(screen.getByText('Tap to see the meaning')).toBeOnTheScreen();
+    expect(onFlip).toHaveBeenLastCalledWith(false);
+    expect(onAnswer).not.toHaveBeenCalled();
+  });
+
+  test('a tap reports the flip too', async () => {
+    const { onFlip } = await renderCard();
+
+    await drag(3);
+
+    expect(onFlip).toHaveBeenCalledWith(true);
+  });
+
+  test('flip() does nothing once the card is flying out', async () => {
+    const { onFlip, ref } = await renderCard();
+
+    await act(async () => {
+      ref.current?.answer(true);
+      ref.current?.flip();
+    });
+
+    expect(onFlip).not.toHaveBeenCalled();
   });
 });

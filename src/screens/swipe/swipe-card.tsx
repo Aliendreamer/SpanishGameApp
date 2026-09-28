@@ -30,18 +30,22 @@ const FLIP = { duration: 450, easing: Easing.bezier(0.3, 0.7, 0.3, 1) };
 export type SwipeCardHandle = {
   // Flies the card out as if swiped: right for "I know it", left for "Still learning".
   answer: (knowIt: boolean) => void;
+  // Turns the card over, as a tap does.
+  flip: () => void;
 };
 
 type Props = {
   word: DeckWord;
   // Called once, when the card has flown out.
   onAnswer: (knowIt: boolean) => void;
+  // Called on every flip, with true when the back is now showing.
+  onFlip: (flipped: boolean) => void;
   ref?: Ref<SwipeCardHandle>;
 };
 
 // One word card: drag to answer, tap to flip. The screen mounts a fresh one per word, so every card
 // starts centred and front-side up.
-export function SwipeCard({ word, onAnswer, ref }: Props) {
+export function SwipeCard({ word, onAnswer, onFlip, ref }: Props) {
   const t = useT();
   const dx = useSharedValue(0);
   // 0 = front, 1 = back; animates the 3D flip.
@@ -51,9 +55,11 @@ export function SwipeCard({ word, onAnswer, ref }: Props) {
   const [flipped, setFlipped] = useState(false);
 
   const flip = () => {
+    if (leaving.get()) return;
     const next = !flipped;
     setFlipped(next);
     turn.set(withTiming(next ? 1 : 0, FLIP));
+    onFlip(next);
   };
 
   const flyOut = (knowIt: boolean) => {
@@ -67,7 +73,7 @@ export function SwipeCard({ word, onAnswer, ref }: Props) {
     );
   };
 
-  useImperativeHandle(ref, () => ({ answer: flyOut }));
+  useImperativeHandle(ref, () => ({ answer: flyOut, flip }));
 
   // minDistance 0: the pan starts on touch, so a release under the tap distance can flip the card.
   const pan = Gesture.Pan()

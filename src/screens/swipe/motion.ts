@@ -3,8 +3,9 @@
 
 // Past this, a release answers; it is also the drag at which a stamp is fully shown.
 export const COMMIT_DISTANCE = 90;
-// Under this, in any direction, a release is a tap.
-export const TAP_DISTANCE = 6;
+// Under this, in any direction, a release is a tap. Above Android's ~8 dp touch slop: fingers
+// drift a few dp during a tap, more on some phones.
+export const TAP_DISTANCE = 12;
 // Where the fly-out ends, and its tilt.
 export const FLY_DISTANCE = 560;
 export const FLY_ROTATION = 24;

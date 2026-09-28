@@ -69,6 +69,36 @@ describe('<Swipe />', () => {
     expect(screen.queryByText('Tap to see the meaning')).toBeNull();
   });
 
+  test('the ↻ button sits between the answer buttons and flips the card both ways', async () => {
+    const { onAnswer } = await renderSwipe();
+    const inOrder = screen.getAllByRole('button', {
+      name: /^(Still learning|Show meaning|I know it)$/,
+    });
+    expect(inOrder).toEqual([
+      screen.getByRole('button', { name: 'Still learning' }),
+      screen.getByRole('button', { name: 'Show meaning' }),
+      screen.getByRole('button', { name: 'I know it' }),
+    ]);
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Show meaning' }));
+    expect(screen.getByText('house')).toBeOnTheScreen();
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Show word' }));
+    expect(screen.getByText('Tap to see the meaning')).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Show meaning' })).toBeOnTheScreen();
+    expect(onAnswer).not.toHaveBeenCalled();
+  });
+
+  test('a tap on the card relabels the ↻ button, and the next card resets it', async () => {
+    await renderSwipe();
+
+    await tapCard();
+    expect(screen.getByRole('button', { name: 'Show word' })).toBeOnTheScreen();
+
+    await know();
+    expect(screen.getByRole('button', { name: 'Show meaning' })).toBeOnTheScreen();
+  });
+
   test('"I know it" reports the answer, counts it, and shows the next card', async () => {
     const { onAnswer } = await renderSwipe();
 
@@ -215,6 +245,8 @@ describe('<Swipe />', () => {
       'Показва значението',
     );
     expect(screen.getByRole('button', { name: 'Още я уча' })).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Покажи значението' }));
+    expect(screen.getByRole('button', { name: 'Покажи думата' })).toBeOnTheScreen();
 
     await fireEvent.press(screen.getByRole('button', { name: 'Знам я' }));
 

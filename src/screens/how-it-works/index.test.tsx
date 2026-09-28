@@ -11,7 +11,7 @@ describe('<HowItWorks />', () => {
     await render(<HowItWorks initialShowTutorial onStart={() => {}} />);
 
     expect(screen.getByRole('header', { name: 'How it works' })).toBeOnTheScreen();
-    expect(screen.getByText('Tap the card')).toBeOnTheScreen();
+    expect(screen.getByText('Tap the card or ↻')).toBeOnTheScreen();
     expect(
       screen.getByText('It flips to show the English meaning and an example.'),
     ).toBeOnTheScreen();
@@ -47,6 +47,7 @@ describe('<HowItWorks />', () => {
     await render(<HowItWorks initialShowTutorial onStart={() => {}} />, { wrapper: InBulgarian });
 
     expect(screen.getByText('Как работи')).toBeOnTheScreen();
+    expect(screen.getByText('Докосни картата или ↻')).toBeOnTheScreen();
     expect(screen.getByText('Плъзни наляво, ако още я учиш')).toBeOnTheScreen();
     expect(screen.getByText('Можеш да я упражниш в края на серията.')).toBeOnTheScreen();
     expect(

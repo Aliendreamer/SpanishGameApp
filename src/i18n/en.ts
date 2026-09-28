@@ -65,7 +65,7 @@ export const en = {
     title: 'How it works',
     // Tap, swipe right, swipe left: in the order the screen shows them.
     rows: [
-      { title: 'Tap the card', body: 'It flips to show the English meaning and an example.' },
+      { title: 'Tap the card or ↻', body: 'It flips to show the English meaning and an example.' },
       { title: 'Swipe right if you know it', body: 'The word leaves this batch.' },
       {
         title: "Swipe left if you're still learning",
@@ -83,6 +83,9 @@ export const en = {
     cardLabel: (word: string) => `Card: ${word}`,
     showsMeaning: 'Shows the meaning',
     showsWord: 'Shows the word',
+    // The ↻ button's label, by the side it turns the card to.
+    flipToMeaning: 'Show meaning',
+    flipToWord: 'Show word',
   },
   summary: {
     title: 'Batch done',

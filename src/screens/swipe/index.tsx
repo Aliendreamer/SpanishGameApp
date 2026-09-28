@@ -24,8 +24,8 @@ type Props = {
   onOpenSettings: () => void;
 };
 
-// The Swipe tab (docs/design/swipe-game-ui/README.md, "Swipe tab"): one card at a time — tap to
-// flip, swipe or use the buttons to answer — one pass per batch, then a choice.
+// The Swipe tab (docs/design/swipe-game-ui/README.md, "Swipe tab"): one card at a time — tap it
+// or ↻ to flip, swipe or use the buttons to answer — one pass per batch, then a choice.
 export function Swipe({
   levelLine,
   username,
@@ -41,6 +41,9 @@ export function Swipe({
   const [saveFailed, setSaveFailed] = useState(false);
   // The word being celebrated with "It's a match!", if any.
   const [match, setMatch] = useState<DeckWord | null>(null);
+  // The turn whose card shows its back, if any: tied to the turn, so a new card starts front-up.
+  const [flippedTurn, setFlippedTurn] = useState<number | null>(null);
+  const flipped = flippedTurn === turn;
   const card = useRef<SwipeCardHandle>(null);
   // The latest answer's save: "Next batch" waits for it, so a word just answered is never dealt
   // again because its swipe wasn't stored yet.
@@ -109,12 +112,23 @@ export function Swipe({
         <>
           <View style={styles.cardArea}>
             {batch.queue.length > 1 && <View testID="next-card" style={styles.nextCard} />}
-            <SwipeCard ref={card} key={turn} word={word} onAnswer={answer} />
+            <SwipeCard
+              ref={card}
+              key={turn}
+              word={word}
+              onAnswer={answer}
+              onFlip={(isFlipped) => setFlippedTurn(isFlipped ? turn : null)}
+            />
           </View>
           <View style={styles.buttons}>
             <View style={styles.button}>
               <SecondaryButton label={t.swipe.learn} onPress={() => card.current?.answer(false)} />
             </View>
+            <SecondaryButton
+              icon="↻"
+              label={flipped ? t.swipe.flipToWord : t.swipe.flipToMeaning}
+              onPress={() => card.current?.flip()}
+            />
             <View style={styles.button}>
               <PrimaryButton label={t.swipe.know} onPress={() => card.current?.answer(true)} />
             </View>

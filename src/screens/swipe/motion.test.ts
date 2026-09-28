@@ -6,9 +6,11 @@ describe('releaseOutcome', () => {
     expect(releaseOutcome(-91)).toBe('learn');
   });
 
-  test('a release under 6 dp is a tap', () => {
+  test('a release under 12 dp is a tap, so a finger drifting a little still flips the card', () => {
     expect(releaseOutcome(0)).toBe('tap');
     expect(releaseOutcome(-5)).toBe('tap');
+    expect(releaseOutcome(10)).toBe('tap');
+    expect(releaseOutcome(8, 8)).toBe('tap');
   });
 
   test('a long vertical drag is not a tap, even with little sideways movement', () => {
@@ -17,7 +19,7 @@ describe('releaseOutcome', () => {
   });
 
   test('anything in between springs back', () => {
-    expect(releaseOutcome(6)).toBe('back');
+    expect(releaseOutcome(12)).toBe('back');
     expect(releaseOutcome(-50)).toBe('back');
     expect(releaseOutcome(90)).toBe('back');
   });

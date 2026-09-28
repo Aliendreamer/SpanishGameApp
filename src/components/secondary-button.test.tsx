@@ -11,4 +11,15 @@ describe('<SecondaryButton />', () => {
 
     expect(onPress).toHaveBeenCalledTimes(1);
   });
+
+  test('with an icon, shows just the icon and is still named by its label', async () => {
+    const onPress = jest.fn();
+    await render(<SecondaryButton icon="↻" label="Show meaning" onPress={onPress} />);
+
+    expect(screen.getByText('↻')).toBeOnTheScreen();
+    expect(screen.queryByText('Show meaning')).toBeNull();
+    await fireEvent.press(screen.getByRole('button', { name: 'Show meaning' }));
+
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
 });
