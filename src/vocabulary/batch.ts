@@ -36,7 +36,7 @@ async function resume(db: ProgressDb, settings: DeckSettings): Promise<OpenBatch
   };
 }
 
-// With nothing to deal, the saved batch stays as it was, so its words aren't lost.
+// With nothing to deal (every word is known), the saved batch stays as it was.
 async function deal(db: ProgressDb, settings: DeckSettings, number: number): Promise<OpenBatch> {
   const { batch, words } = await dealBatch(db, settings, number);
   const dealtAt = Date.now();

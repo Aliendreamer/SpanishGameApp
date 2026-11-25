@@ -234,7 +234,7 @@ describe('<Swipe />', () => {
   test('the empty state opens the settings', async () => {
     const { onOpenSettings } = await renderSwipe({ round: roundOf([]) });
 
-    expect(screen.getByRole('header', { name: 'No words match your settings' })).toBeOnTheScreen();
+    expect(screen.getByRole('header', { name: 'You know all these words!' })).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('button', { name: 'Open settings' }));
 
     expect(onOpenSettings).toHaveBeenCalledTimes(1);

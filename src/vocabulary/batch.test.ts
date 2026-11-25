@@ -23,7 +23,7 @@ beforeEach(async () => {
 });
 afterEach(() => db.close());
 
-// Marks every word of the Beginner levels as answered, so nothing new is left to deal.
+// Marks every word of the Beginner levels as known, so nothing is left to deal.
 const swipeEveryBeginnerWord = () =>
   db.execAsync(
     "INSERT INTO swipes (key, direction, at) SELECT key, 'right', 0 FROM vocab.vocabulary WHERE cefr IN ('A1', 'A2')",
@@ -112,10 +112,20 @@ describe('dealNextBatch', () => {
     expect(keysOf((await dealNextBatch(db, all)).round)[0]).toBe(words[200].key);
   });
 
-  test('with no new words, shows none and keeps the batch that was left', async () => {
+  test('with no new words, deals the words still being learned', async () => {
     const { round: first } = await openBatch(db, BEGINNER);
     await swipeEveryBeginnerWord();
     await logSwipe(db, keysOf(first)[0], false);
+
+    const { round } = await dealNextBatch(db, BEGINNER);
+
+    expect(keysOf(round)).toEqual([keysOf(first)[0]]);
+    expect(round).toEqual(expect.objectContaining({ size: 1, batchSize: 1, learned: 0 }));
+  });
+
+  test('with every word known, shows none and keeps the saved batch', async () => {
+    await openBatch(db, BEGINNER);
+    await swipeEveryBeginnerWord();
 
     expect((await dealNextBatch(db, BEGINNER)).round.batchSize).toBe(0);
     expect((await openBatch(db, BEGINNER)).round.batchSize).toBe(100);

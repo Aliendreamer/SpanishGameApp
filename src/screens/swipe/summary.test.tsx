@@ -72,10 +72,10 @@ describe('<EmptyDeck />', () => {
     const onOpenSettings = jest.fn();
     await render(<EmptyDeck onOpenSettings={onOpenSettings} />);
 
-    expect(screen.getByRole('header', { name: 'No words match your settings' })).toBeOnTheScreen();
+    expect(screen.getByRole('header', { name: 'You know all these words!' })).toBeOnTheScreen();
     expect(
       screen.getByText(
-        "You've already swiped every word for these settings. Try another level or word type, or include known words.",
+        'You know every word for these settings. Try another level or word type, or include known words.',
       ),
     ).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('button', { name: 'Open settings' }));
@@ -107,7 +107,12 @@ describe('summary and empty state in Bulgarian', () => {
   test('the empty state', async () => {
     await render(<EmptyDeck onOpenSettings={jest.fn()} />, { wrapper: InBulgarian });
 
-    expect(screen.getByRole('header', { name: 'Няма думи за тези настройки' })).toBeOnTheScreen();
+    expect(screen.getByRole('header', { name: 'Знаеш всички тези думи!' })).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        'Знаеш всички думи за тези настройки. Опитай друго ниво или вид думи, или включи познатите думи.',
+      ),
+    ).toBeOnTheScreen();
     expect(screen.getByRole('button', { name: 'Отвори настройките' })).toBeOnTheScreen();
   });
 });

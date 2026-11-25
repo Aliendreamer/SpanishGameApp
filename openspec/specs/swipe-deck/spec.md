@@ -9,9 +9,10 @@ TBD - created by archiving change swipe-card. Update Purpose after archive.
 
 The Swipe tab SHALL deal up to 100 words matching the saved level settings — Beginner A1 and A2,
 Intermediate B1, Advanced B2, Full every word; with "include lower levels", also the levels below —
-ordered by CEFR level, then frequency rank, with words that have no level last. Words that have
-been swiped before (known or still learning) SHALL be left out unless "include known words" is on;
-with it on, each following batch SHALL continue after the previous one instead of repeating it, also
+ordered by CEFR level, then frequency rank, with words that have no level last. Known words SHALL
+be left out unless "include known words" is on, and words still being learned SHALL come after all
+words never swiped, in the same order among themselves; with "include known words" on, no word is
+left out or moved, and each following batch SHALL continue after the previous one instead of repeating it, also
 after the app restarts, and start over after the last word. Each word SHALL carry its article
 (nouns: "el", "la", or "el/la" from gender), level, part of speech, up to 3 meanings in priority
 order, and its first example sentence if it has one.
@@ -28,9 +29,20 @@ order, and its first example sentence if it has one.
 
 #### Scenario: Swiped words left out
 
-- **WHEN** casa was answered "I know it" and mesa "Still learning", "include known words" is off,
-  and a new batch is dealt
-- **THEN** neither casa nor mesa is in it
+- **WHEN** casa was answered "I know it", "include known words" is off, and a new batch is dealt
+- **THEN** casa is not in it
+
+#### Scenario: New words first
+
+- **WHEN** mesa is still being learned, "include known words" is off, and 100 or more words have never
+  been swiped
+- **THEN** a new batch holds 100 of those and not mesa
+
+#### Scenario: Topped up
+
+- **WHEN** 40 words have never been swiped, 10 are still being learned, and "include known words" is
+  off
+- **THEN** a new batch holds the 40 and then the 10
 
 #### Scenario: Known words included
 
@@ -219,30 +231,35 @@ Settings tab.
 
 #### Scenario: Next batch
 
-- **WHEN** the user presses "Next batch"
+- **WHEN** the user presses "Next batch" and 100 or more words have never been swiped
 - **THEN** a new batch of words not swiped before is dealt
 
 #### Scenario: Leaving words behind
 
-- **WHEN** the user presses "Next batch" with casa still learning and "include known words" off
+- **WHEN** the user presses "Next batch" with casa still learning, "include known words" off, and 100
+  or more words never swiped
 - **THEN** casa is not in the new batch and is listed under Still learning in My words
 
 #### Scenario: No new words
 
 - **WHEN** the user presses "Next batch" with casa still learning and no unswiped words are left
-- **THEN** the empty state is shown, and reopening the app shows the summary with casa left
+- **THEN** a new batch of the words still being learned, casa among them, is dealt
 
 ### Requirement: Empty state
 
-When no words match the settings the Swipe tab SHALL show "No words match your settings", "You've
-already swiped every word for these settings. Try another level or word type, or include known
-words.", and an "Open settings" button that opens the Settings tab.
+When there are no words to deal the Swipe tab SHALL show "You know all these words!", "You know every
+word for these settings. Try another level or word type, or include known words.", and an "Open
+settings" button that opens the Settings tab.
 
 #### Scenario: Nothing to deal
 
-- **WHEN** every word for the chosen level and word type has been swiped and known words are
-  excluded
+- **WHEN** every word for the chosen level and word type is known and known words are excluded
 - **THEN** the empty state is shown
+
+#### Scenario: Words still being learned
+
+- **WHEN** every word for the chosen level and word type has been swiped and one is still being learned
+- **THEN** that word is dealt instead of the empty state
 
 ### Requirement: It's a match
 

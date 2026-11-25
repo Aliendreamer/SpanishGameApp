@@ -74,7 +74,7 @@ describe('getDeck', () => {
     expect(deck.filter((word) => word.partOfSpeech !== 'noun').every((w) => !w.article)).toBe(true);
   });
 
-  test('leaves out every swiped word, known or still learning, unless known words are included', async () => {
+  test('leaves out known words unless known words are included, which keeps the order', async () => {
     const [first, second] = await getDeck(db, settings({ level: 'advanced' }));
     await logSwipe(db, first.key, true);
     await logSwipe(db, second.key, false);
@@ -83,8 +83,55 @@ describe('getDeck', () => {
     const withKnown = await getDeck(db, settings({ level: 'advanced', includeKnown: true }));
 
     expect(without.map((word) => word.key)).not.toContain(first.key);
-    expect(without.map((word) => word.key)).not.toContain(second.key);
     expect(withKnown.slice(0, 2).map((word) => word.key)).toEqual([first.key, second.key]);
+  });
+
+  describe('words still being learned', () => {
+    const VERBS = settings({ level: 'advanced', includeLower: false, wordType: 'verb' });
+    let own: TestDb;
+    // Every B2 verb, in deck order.
+    let all: string[];
+    const keysDealt = async () => (await getDeck(own, VERBS)).map((word) => word.key);
+    const swipeAll = async (keys: string[], knowIt: boolean) => {
+      for (const key of keys) await logSwipe(own, key, knowIt);
+    };
+
+    beforeEach(async () => {
+      own = openTestDb();
+      await migrate(own);
+      await own.runAsync('ATTACH DATABASE ? AS vocab', [BUNDLED_VOCABULARY]);
+      all = (await getDeck(own, VERBS, { limit: 10_000 })).map((word) => word.key);
+    });
+    afterEach(() => own.close());
+
+    test('wait until fewer than 100 new words are left', async () => {
+      await swipeAll(all.slice(0, 2), false);
+
+      expect(await keysDealt()).toEqual(all.slice(2, 102));
+    });
+
+    test('top up a short batch after the new words, in deck order', async () => {
+      const learning = all.slice(0, 10);
+      await swipeAll([...learning].reverse(), false);
+      await swipeAll(all.slice(10, -40), true);
+
+      expect(await keysDealt()).toEqual([...all.slice(-40), ...learning]);
+    });
+
+    test('make a batch alone once no new words are left', async () => {
+      await swipeAll(all.slice(1), true);
+      await swipeAll(all.slice(0, 1), false);
+
+      expect(await keysDealt()).toEqual(all.slice(0, 1));
+    });
+
+    test('go by the latest swipe: known again is left out', async () => {
+      await swipeAll(all, true);
+      await logSwipe(own, all[0], false);
+      await logSwipe(own, all[0], true);
+
+      expect(await keysDealt()).toEqual([]);
+    });
   });
 
   test('deals only the chosen word type, or every type for all words', async () => {

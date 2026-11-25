@@ -28,7 +28,7 @@ Later: undo, English → Spanish, hints, topics, showing example sentences
   the words not learned yet, until none are left (changed 2026-11-25; before that, one pass and an
   optional practise round). No re-queueing within a round — missed words ~4 cards later was too
   frequent and batches never finished (2026-09-23). Between rounds: "Continue with the {n} left", or
-  "Next batch" (words never swiped before), leaving the rest. The batch is saved per choice of
+  "Next batch" (new words first, then ones still being learned), leaving the rest. The batch is saved per choice of
   settings and resumes after a restart. "It's a match!" only for words missed before the current
   batch.
 - **Known** = the word's most recent swipe was right. Every swipe is logged (word, direction, time).
@@ -42,8 +42,8 @@ Later: undo, English → Spanish, hints, topics, showing example sentences
   dictionary updates never touch statistics.
 - **Storage:** dictionary is read-only data; progress (swipe log, settings) in its own SQLite DB,
   keyed by `lemma|pos` so regenerating the dictionary keeps progress.
-- **Errors:** bad data → full-screen error; failed swipe save → non-blocking banner; no matching
-  words → empty state linking to Settings.
+- **Errors:** bad data → full-screen error; failed swipe save → non-blocking banner; every word
+  known → empty state linking to Settings.
 - **Credits screen** — attribution required by Doozan (Wiktionary CC-BY-SA, Tatoeba CC-BY).
   The CEFR dataset has no licence file ("free for personal and educational use") — check with the
   author before any Play Store release.

@@ -308,6 +308,17 @@ describe('launch routing', () => {
     );
   });
 
+  test('with every word of the level swiped, the one still being learned is dealt', async () => {
+    await mockDb.execAsync(
+      `INSERT INTO swipes (key, direction, at) SELECT key, 'right', 0 FROM vocab.vocabulary WHERE cefr IN ('A1', 'A2');
+       INSERT INTO swipes (key, direction, at) VALUES ('casa|noun', 'left', 0)`,
+    );
+    await renderApp('/swipe', { ...done, showTutorial: false });
+
+    expect(await screen.findByRole('button', { name: 'Card: casa' })).toBeOnTheScreen();
+    expect(screen.getByText('0 / 1')).toBeOnTheScreen();
+  });
+
   test('with every word of the level known, the empty state leads to Settings', async () => {
     await mockDb.execAsync(
       "INSERT INTO swipes (key, direction, at) SELECT key, 'right', 0 FROM vocab.vocabulary WHERE cefr IN ('A1', 'A2')",

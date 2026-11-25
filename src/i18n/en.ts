@@ -100,8 +100,8 @@ export const en = {
     changeSettings: 'Change settings',
   },
   empty: {
-    title: 'No words match your settings',
-    body: "You've already swiped every word for these settings. Try another level or word type, or include known words.",
+    title: 'You know all these words!',
+    body: 'You know every word for these settings. Try another level or word type, or include known words.',
     openSettings: 'Open settings',
   },
   match: {
