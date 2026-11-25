@@ -5,6 +5,7 @@ import { fireGestureHandler, getByGestureTestId } from 'react-native-gesture-han
 import { InBulgarian } from '@/i18n/testing';
 import { Swipe } from '@/screens/swipe';
 import type { DeckWord } from '@/vocabulary/deck';
+import type { Round } from '@/vocabulary/queue';
 
 const word = (lemma: string, meaning = lemma): DeckWord => ({
   key: `${lemma}|noun`,
@@ -16,33 +17,43 @@ const word = (lemma: string, meaning = lemma): DeckWord => ({
   meanings: [meaning],
   example: null,
 });
+// A batch's first round of these words.
+const roundOf = (queue: DeckWord[]): Round => ({
+  queue,
+  size: queue.length,
+  batchSize: queue.length,
+  learned: 0,
+});
 const words = [word('casa', 'house'), word('mesa', 'table'), word('silla', 'chair')];
 
 // Reanimated's official mock finishes animations at once, so answers land immediately.
 jest.mock('react-native-reanimated', () => jest.requireActual('react-native-reanimated/mock'));
 
 async function renderSwipe({
-  deck = words,
+  round = roundOf(words),
   onAnswer = jest.fn(async () => false),
-  onNextBatch = jest.fn(async () => [word('perro')]),
+  onNextRound = jest.fn(async () => roundOf([])),
+  onNextBatch = jest.fn(async () => roundOf([word('perro')])),
   onOpenSettings = jest.fn(),
 }: {
-  deck?: DeckWord[];
+  round?: Round;
   onAnswer?: (word: DeckWord, knowIt: boolean) => Promise<boolean>;
-  onNextBatch?: () => Promise<DeckWord[]>;
+  onNextRound?: () => Promise<Round>;
+  onNextBatch?: () => Promise<Round>;
   onOpenSettings?: () => void;
 } = {}) {
   await render(
     <Swipe
       levelLine="Beginner · A1, A2"
       username="Ana"
-      initialWords={deck}
+      initialRound={round}
       onAnswer={onAnswer}
+      onNextRound={onNextRound}
       onNextBatch={onNextBatch}
       onOpenSettings={onOpenSettings}
     />,
   );
-  return { onAnswer, onNextBatch, onOpenSettings };
+  return { onAnswer, onNextRound, onNextBatch, onOpenSettings };
 }
 const tapCard = () =>
   act(async () => {
@@ -127,7 +138,7 @@ describe('<Swipe />', () => {
 
     await know(); // mesa
     await know(); // silla
-    expect(screen.getByRole('header', { name: 'Batch done' })).toBeOnTheScreen();
+    expect(screen.getByRole('header', { name: 'Round done' })).toBeOnTheScreen();
   });
 
   test('shows the next-card hint only while more than one card is left', async () => {
@@ -141,22 +152,31 @@ describe('<Swipe />', () => {
     expect(screen.queryByTestId('next-card')).toBeNull();
   });
 
-  test('after one pass, shows the summary; Practise replays the misses, Next batch deals more', async () => {
-    const { onNextBatch } = await renderSwipe();
+  test('after one pass, continues with the words left until the batch is learned', async () => {
+    const onNextRound = jest.fn(async () => ({
+      queue: [words[0]],
+      size: 1,
+      batchSize: 3,
+      learned: 2,
+    }));
+    const { onNextBatch } = await renderSwipe({ onNextRound });
 
     await learn(); // casa
     await know(); // mesa
     await know(); // silla
 
     expect(screen.getByText('3 / 3')).toBeOnTheScreen();
+    expect(screen.getByRole('header', { name: 'Round done' })).toBeOnTheScreen();
     expect(screen.getByText('You know 2 of 3 words in this batch.')).toBeOnTheScreen();
-    await fireEvent.press(screen.getByRole('button', { name: 'Practise the 1 still learning' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Continue with the 1 left' }));
 
+    expect(onNextRound).toHaveBeenCalledTimes(1);
     expect(screen.getByText('casa')).toBeOnTheScreen();
     expect(screen.getByText('0 / 1')).toBeOnTheScreen();
     await know(); // casa
 
-    expect(screen.getByText('You know 1 of 1 word in this batch.')).toBeOnTheScreen();
+    expect(screen.getByRole('header', { name: 'Batch learned!' })).toBeOnTheScreen();
+    expect(screen.getByText('You know 3 of 3 words in this batch.')).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('button', { name: 'Next batch' }));
 
     expect(onNextBatch).toHaveBeenCalledTimes(1);
@@ -164,13 +184,42 @@ describe('<Swipe />', () => {
     expect(screen.getByText('0 / 1')).toBeOnTheScreen();
   });
 
+  test('starts where the round was left', async () => {
+    await renderSwipe({ round: { queue: words.slice(1), size: 3, batchSize: 10, learned: 8 } });
+
+    expect(screen.getByText('mesa')).toBeOnTheScreen();
+    expect(screen.getByText('1 / 3')).toBeOnTheScreen();
+  });
+
+  test('opens on the summary when the round was finished', async () => {
+    await renderSwipe({ round: { queue: [], size: 100, batchSize: 100, learned: 66 } });
+
+    expect(screen.getByText('100 / 100')).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Continue with the 34 left' })).toBeOnTheScreen();
+  });
+
+  test('Continue waits until the last answer is saved', async () => {
+    let finishSave = () => {};
+    const onAnswer = jest.fn(
+      () => new Promise<boolean>((resolve) => (finishSave = () => resolve(false))),
+    );
+    const { onNextRound } = await renderSwipe({ round: roundOf([word('casa')]), onAnswer });
+
+    await learn();
+    const next = fireEvent.press(screen.getByRole('button', { name: 'Continue with the 1 left' }));
+    expect(onNextRound).not.toHaveBeenCalled();
+
+    finishSave();
+    await next;
+    expect(onNextRound).toHaveBeenCalledTimes(1);
+  });
+
   test('Next batch waits until the last answer is saved', async () => {
     let finishSave = () => {};
     const onAnswer = jest.fn(
       () => new Promise<boolean>((resolve) => (finishSave = () => resolve(false))),
     );
-    const onNextBatch = jest.fn(async () => [word('perro')]);
-    await renderSwipe({ deck: [word('casa')], onAnswer, onNextBatch });
+    const { onNextBatch } = await renderSwipe({ round: roundOf([word('casa')]), onAnswer });
 
     await know();
     // Without the wait, onNextBatch would run at once, inside this press.
@@ -183,7 +232,7 @@ describe('<Swipe />', () => {
   });
 
   test('the empty state opens the settings', async () => {
-    const { onOpenSettings } = await renderSwipe({ deck: [] });
+    const { onOpenSettings } = await renderSwipe({ round: roundOf([]) });
 
     expect(screen.getByRole('header', { name: 'No words match your settings' })).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('button', { name: 'Open settings' }));
@@ -236,9 +285,10 @@ describe('<Swipe />', () => {
       <Swipe
         levelLine="Начинаещ · A1, A2"
         username="Ana"
-        initialWords={words}
+        initialRound={roundOf(words)}
         onAnswer={onAnswer}
-        onNextBatch={jest.fn(async () => [])}
+        onNextRound={jest.fn()}
+        onNextBatch={jest.fn()}
         onOpenSettings={jest.fn()}
       />,
       { wrapper: InBulgarian },

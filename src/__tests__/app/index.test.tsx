@@ -21,7 +21,8 @@ import TutorialRoute from '@/app/tutorial';
 import { LanguageProvider } from '@/i18n';
 import { LaunchContext } from '@/launch';
 import type { LaunchPrefs } from '@/storage/prefs';
-import { getSettings, migrate, saveSettings } from '@/storage/progress-db';
+import { readBatch, saveBatch } from '@/storage/batches';
+import { DEFAULT_SETTINGS, getSettings, migrate, saveSettings } from '@/storage/progress-db';
 
 // Reanimated's official mock finishes animations at once, so swipe answers land immediately.
 jest.mock('react-native-reanimated', () => jest.requireActual('react-native-reanimated/mock'));
@@ -394,6 +395,109 @@ describe('launch routing', () => {
     );
 
     expect(screen.queryByRole('header', { name: "It's a match!" })).toBeNull();
+  });
+
+  describe('saved batch', () => {
+    const swipeRoute = { ...done, showTutorial: false };
+    const cardLemma = async () =>
+      String(
+        (await screen.findByRole('button', { name: /^Card:/ })).props.accessibilityLabel,
+      ).replace('Card: ', '');
+    const swipesSaved = (n: number) =>
+      eventually(async () =>
+        expect(await mockDb.getFirstAsync('SELECT count(*) AS n FROM swipes')).toEqual({ n }),
+      );
+    // Answers the card on screen, the `nth` answer logged, and waits until it has flown out and been
+    // saved: a press while a card is leaving is ignored.
+    const answer = async (name: 'I know it' | 'Still learning', nth: number) => {
+      await fireEvent.press(await screen.findByRole('button', { name }));
+      await swipesSaved(nth);
+    };
+    // Closes the app and opens it again on the same databases.
+    const restart = async () => {
+      await screen.unmount();
+      await renderApp('/swipe', swipeRoute);
+    };
+    // A batch of two easy-to-recognise words, as if dealt earlier.
+    const saveTwoWords = () =>
+      saveBatch(mockDb, DEFAULT_SETTINGS, { keys: ['casa|noun', 'mesa|noun'], number: 0 });
+
+    test('carries on at the same card after a restart', async () => {
+      await renderApp('/swipe', swipeRoute);
+      await answer('I know it', 1);
+      await answer('Still learning', 2);
+      const lemma = await cardLemma();
+
+      await restart();
+
+      expect(await cardLemma()).toBe(lemma);
+      expect(screen.getByText('2 / 100')).toBeOnTheScreen();
+    });
+
+    test('opens on the summary after a restart there, and continues with the words left', async () => {
+      await saveTwoWords();
+      await renderApp('/swipe', swipeRoute);
+      await answer('Still learning', 1); // casa
+      await answer('I know it', 2); // mesa
+
+      await restart();
+
+      await fireEvent.press(
+        await screen.findByRole('button', { name: 'Continue with the 1 left' }),
+      );
+      expect(await cardLemma()).toBe('casa');
+      expect(screen.getByText('0 / 1')).toBeOnTheScreen();
+
+      await answer('I know it', 3);
+      expect(await screen.findByRole('header', { name: 'Batch learned!' })).toBeOnTheScreen();
+      // Missed in this very batch, before the restart: not a match.
+      expect(screen.queryByRole('header', { name: "It's a match!" })).toBeNull();
+    });
+
+    test('Next batch leaves the missed word behind, under Still learning', async () => {
+      await saveTwoWords();
+      await renderApp('/swipe', swipeRoute);
+      await answer('Still learning', 1); // casa
+      await answer('I know it', 2); // mesa
+      await fireEvent.press(screen.getByRole('button', { name: 'Next batch' }));
+
+      expect(await screen.findByText('0 / 100')).toBeOnTheScreen();
+      const saved = await readBatch(mockDb, DEFAULT_SETTINGS);
+      expect(saved?.queue).not.toContain('casa|noun');
+      await fireEvent.press(screen.getByRole('tab', { name: 'Words' }));
+      expect(await screen.findByRole('tab', { name: 'Still learning · 1' })).toBeOnTheScreen();
+    });
+
+    test('shows the full-screen error when the next round cannot be started', async () => {
+      await saveTwoWords();
+      await renderApp('/swipe', swipeRoute);
+      await answer('Still learning', 1);
+      await answer('I know it', 2);
+      await mockDb.execAsync('DROP TABLE batches');
+
+      await fireEvent.press(screen.getByRole('button', { name: 'Continue with the 1 left' }));
+
+      expect(await screen.findByText('Something went wrong')).toBeOnTheScreen();
+    });
+
+    test('changing the level and back returns to the same place', async () => {
+      await renderApp('/swipe', swipeRoute);
+      await answer('I know it', 1);
+      const lemma = await cardLemma();
+
+      for (const [level, line] of [
+        [/^Intermediate/, /^Intermediate · /],
+        [/^Beginner/, /^Beginner · /],
+      ]) {
+        await fireEvent.press(screen.getByRole('tab', { name: 'Settings' }));
+        await fireEvent.press(await screen.findByRole('radio', { name: level }));
+        await fireEvent.press(screen.getByRole('tab', { name: 'Swipe' }));
+        expect(await screen.findByText(line)).toBeOnTheScreen();
+      }
+
+      expect(await cardLemma()).toBe(lemma);
+      expect(screen.getByText('1 / 100')).toBeOnTheScreen();
+    });
   });
 
   describe('Settings tab', () => {

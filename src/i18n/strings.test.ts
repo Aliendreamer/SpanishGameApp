@@ -47,3 +47,21 @@ describe('Bulgarian counts', () => {
     expect(bg.summary.known(1, 1)).toBe('Знаеш 1 от 1 дума в тази серия.');
   });
 });
+
+describe('round texts', () => {
+  test('name the round, the learned batch, and how many words are left', () => {
+    expect(en.summary).toEqual(
+      expect.objectContaining({ roundTitle: 'Round done', learnedTitle: 'Batch learned!' }),
+    );
+    expect(en.summary.continue(34)).toBe('Continue with the 34 left');
+    expect(bg.summary).toEqual(
+      expect.objectContaining({ roundTitle: 'Кръгът е готов', learnedTitle: 'Серията е научена!' }),
+    );
+    expect(bg.summary.continue(34)).toBe('Продължи с останалите (34)');
+  });
+
+  test('the practise round is gone', () => {
+    expect(en.summary).not.toHaveProperty('practise');
+    expect(bg.summary).not.toHaveProperty('practise');
+  });
+});

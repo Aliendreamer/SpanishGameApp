@@ -2,7 +2,7 @@ import { BUNDLED_VOCABULARY, openTestDb, type TestDb } from '../../scripts/node-
 
 import { DEFAULT_SETTINGS, migrate, type Settings } from '@/storage/progress-db';
 import { logSwipe } from '@/storage/swipes';
-import { dealBatch, type DeckWord, getDeck } from '@/vocabulary/deck';
+import { dealBatch, type DeckWord, getDeck, getWords } from '@/vocabulary/deck';
 
 let db: TestDb;
 
@@ -106,6 +106,24 @@ describe('getDeck', () => {
     const second = await getDeck(db, settings({ level: 'intermediate' }), { offset: 100 });
 
     expect(second.map((word) => word.key)).toEqual(two.slice(100).map((word) => word.key));
+  });
+});
+
+describe('getWords', () => {
+  test('loads words by key in the order given, as the deck deals them', async () => {
+    const deck = await getDeck(db, settings({}), { limit: 5 });
+    const order = [deck[3], deck[0], deck[4]];
+
+    expect(
+      await getWords(
+        db,
+        order.map((word) => word.key),
+      ),
+    ).toEqual(order);
+  });
+
+  test('leaves out words the dictionary does not have', async () => {
+    expect(await getWords(db, ['nosuchword|noun'])).toEqual([]);
   });
 });
 

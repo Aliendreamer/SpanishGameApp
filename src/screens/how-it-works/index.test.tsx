@@ -18,7 +18,7 @@ describe('<HowItWorks />', () => {
     expect(screen.getByText('Swipe right if you know it')).toBeOnTheScreen();
     expect(screen.getByText('The word leaves this batch.')).toBeOnTheScreen();
     expect(screen.getByText("Swipe left if you're still learning")).toBeOnTheScreen();
-    expect(screen.getByText('You can practise it at the end of the batch.')).toBeOnTheScreen();
+    expect(screen.getByText('It comes back in the next round.')).toBeOnTheScreen();
   });
 
   test('shows the greeting only when given one', async () => {
@@ -49,7 +49,7 @@ describe('<HowItWorks />', () => {
     expect(screen.getByText('Как работи')).toBeOnTheScreen();
     expect(screen.getByText('Докосни картата или ↻')).toBeOnTheScreen();
     expect(screen.getByText('Плъзни наляво, ако още я учиш')).toBeOnTheScreen();
-    expect(screen.getByText('Можеш да я упражниш в края на серията.')).toBeOnTheScreen();
+    expect(screen.getByText('Ще се върне в следващия кръг.')).toBeOnTheScreen();
     expect(
       screen.getByRole('checkbox', { name: 'Показвай този екран при стартиране' }),
     ).toBeOnTheScreen();

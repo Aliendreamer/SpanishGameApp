@@ -1,3 +1,4 @@
+import type { DeckSettings } from '@/storage/batches';
 import type { ProgressDb, Settings } from '@/storage/progress-db';
 import { articleFor } from '@/vocabulary/article';
 import { deckBands } from '@/vocabulary/levels';
@@ -29,7 +30,7 @@ type WordRow = {
 
 // Words for the saved settings: level by level (unlevelled last), each level in frequency order —
 // the order the roadmap sets for dealing batches. Words swiped before are left out unless the
-// settings include known words; `offset` skips words already dealt this session.
+// settings include known words; `offset` skips the words of earlier batches.
 export async function getDeck(
   db: ProgressDb,
   settings: Pick<Settings, 'level' | 'includeLower'> &
@@ -52,6 +53,22 @@ export async function getDeck(
      LIMIT ? OFFSET ?`,
     [...(bands ?? []), ...(wordType === 'all' ? [] : [wordType]), limit, offset],
   );
+  return addDetails(db, rows);
+}
+
+// The words with these keys, in the order given; keys the dictionary doesn't have are left out.
+export async function getWords(db: ProgressDb, keys: string[]): Promise<DeckWord[]> {
+  const rows = await db.getAllAsync<WordRow>(
+    `SELECT v.key, v.spanish, v.part_of_speech, v.gender, v.cefr, v.frequency_rank
+     FROM json_each(?) word JOIN vocab.vocabulary v ON v.key = word.value
+     ORDER BY word.key`,
+    [JSON.stringify(keys)],
+  );
+  return addDetails(db, rows);
+}
+
+// Adds the meanings and the first example to each word.
+async function addDetails(db: ProgressDb, rows: WordRow[]): Promise<DeckWord[]> {
   if (rows.length === 0) return [];
 
   const keys = rows.map((row) => row.key);
@@ -90,12 +107,12 @@ export async function getDeck(
   }));
 }
 
-// Deals batch number `batch` (0-based) of a session. Without known words, answered words drop out,
+// Deals batch number `batch` (0-based) of the level. Without known words, answered words drop out,
 // so every batch starts from the top of what is left. With them, batches walk down the level and
 // start over after its last word, rather than dealing nothing.
 export async function dealBatch(
   db: ProgressDb,
-  settings: Pick<Settings, 'level' | 'includeLower' | 'includeKnown' | 'wordType'>,
+  settings: DeckSettings,
   batch: number,
 ): Promise<{ batch: number; words: DeckWord[] }> {
   if (!settings.includeKnown) return { batch: 0, words: await getDeck(db, settings) };

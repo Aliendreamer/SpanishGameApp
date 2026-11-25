@@ -3,7 +3,9 @@
 ## Purpose
 The first-launch flow: Welcome, then username, level, and tutorial steps (built one screen at a
 time), per docs/design/swipe-game-ui/.
+
 ## Requirements
+
 ### Requirement: Welcome screen
 
 While onboarding is not done, the app SHALL open on the Welcome screen at `/onboarding` (the `/`
@@ -125,8 +127,8 @@ save the chosen level and checkbox to the game settings.
 
 Onboarding step 4 SHALL show the title "How it works"; three rows — "1" "Tap the card or ↻" / "It
 flips to show the English meaning and an example.", "→" "Swipe right if you know it" / "The word
-leaves this batch.", "←" "Swipe left if you're still learning" / "You can practise it at the end
-of the batch."; a "Show this screen when the app starts" checkbox, ticked unless the user turned it
+leaves this batch.", "←" "Swipe left if you're still learning" / "It comes back in the next round.";
+a "Show this screen when the app starts" checkbox, ticked unless the user turned it
 off before; and a "Start swiping" button. "Start swiping" SHALL save the checkbox as
 `showTutorial`, mark onboarding done, and open the Swipe screen, leaving no way back into
 onboarding.
@@ -140,8 +142,8 @@ onboarding.
 #### Scenario: Swipe-left row
 
 - **WHEN** How it works is shown in English
-- **THEN** the third row reads "Swipe left if you're still learning" / "You can practise it at the
-  end of the batch."
+- **THEN** the third row reads "Swipe left if you're still learning" / "It comes back in the next
+  round."
 
 #### Scenario: Tap row
 
@@ -165,4 +167,3 @@ as `showTutorial` and open the Swipe screen.
 
 - **WHEN** "Show tutorial at start" was turned off in Settings and the user opens "View tutorial now"
 - **THEN** the tutorial's checkbox is unticked
-

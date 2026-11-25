@@ -69,7 +69,7 @@ export const en = {
       { title: 'Swipe right if you know it', body: 'The word leaves this batch.' },
       {
         title: "Swipe left if you're still learning",
-        body: 'You can practise it at the end of the batch.',
+        body: 'It comes back in the next round.',
       },
     ],
     showAtStart: 'Show this screen when the app starts',
@@ -88,13 +88,15 @@ export const en = {
     flipToWord: 'Show word',
   },
   summary: {
-    title: 'Batch done',
+    // The end of a round, with words left to learn and with none.
+    roundTitle: 'Round done',
+    learnedTitle: 'Batch learned!',
     known: (known: number, size: number) =>
       `You know ${known} of ${size} ${words(size)} in this batch.`,
     knownTile: 'known',
     learningTile: 'still learning',
     next: 'Next batch',
-    practise: (count: number) => `Practise the ${count} still learning`,
+    continue: (count: number) => `Continue with the ${count} left`,
     changeSettings: 'Change settings',
   },
   empty: {

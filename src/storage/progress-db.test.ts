@@ -91,3 +91,20 @@ describe('migration 3', () => {
     old.close();
   });
 });
+
+describe('migration 4', () => {
+  test('adds an empty batches table to a version 3 database and keeps settings and swipes', async () => {
+    for (const migration of MIGRATIONS.slice(0, 3)) await db.execAsync(migration);
+    await db.execAsync('PRAGMA user_version = 3');
+    await saveSettings(db, { level: 'advanced', wordType: 'verb' });
+    await db.runAsync("INSERT INTO swipes (key, direction, at) VALUES ('casa|noun', 'right', 1)");
+
+    await migrate(db);
+
+    expect(await getSettings(db)).toEqual(
+      expect.objectContaining({ level: 'advanced', wordType: 'verb' }),
+    );
+    expect(await db.getFirstAsync('SELECT count(*) AS n FROM swipes')).toEqual({ n: 1 });
+    expect(await db.getFirstAsync('SELECT count(*) AS n FROM batches')).toEqual({ n: 0 });
+  });
+});

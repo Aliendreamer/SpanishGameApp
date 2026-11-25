@@ -1,27 +1,34 @@
+import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { useT } from '@/i18n';
 import { PrimaryButton } from '@/components/primary-button';
 import { SecondaryButton } from '@/components/secondary-button';
 import { colors, fonts, radii, spacing } from '@/theme';
+import { singleFlight } from '@/utils/single-flight';
 import type { batchSummary } from '@/vocabulary/queue';
 
 type Props = {
   summary: ReturnType<typeof batchSummary>;
   onNext: () => void | Promise<void>;
-  // A one-pass round of the words answered "Still learning".
-  onPractise: () => void;
+  // Another round, of the words not learned yet.
+  onContinue: () => void | Promise<void>;
   onOpenSettings: () => void;
 };
 
-// "Batch done" after one pass: how it went, then next batch, practise the misses, or settings.
-export function BatchSummary({ summary, onNext, onPractise, onOpenSettings }: Props) {
+// The end of a round: how the batch is going, then carry on with the words left (or, with none left,
+// the next batch), the next batch anyway, or settings.
+export function BatchSummary({ summary, onNext, onContinue, onOpenSettings }: Props) {
   const t = useT();
+  // One runner for both, so a press while the other is loading can't deal twice.
+  const [run] = useState(singleFlight);
+  const left = summary.learning;
+  const next = () => run(onNext);
   return (
     <View style={styles.screen}>
       <View style={styles.copy}>
         <Text accessibilityRole="header" style={styles.title}>
-          {t.summary.title}
+          {left > 0 ? t.summary.roundTitle : t.summary.learnedTitle}
         </Text>
         <Text style={styles.body}>{t.summary.known(summary.known, summary.size)}</Text>
       </View>
@@ -36,9 +43,13 @@ export function BatchSummary({ summary, onNext, onPractise, onOpenSettings }: Pr
         </View>
       </View>
       <View style={styles.buttons}>
-        <PrimaryButton label={t.summary.next} onPress={onNext} />
-        {summary.learning > 0 && (
-          <SecondaryButton label={t.summary.practise(summary.learning)} onPress={onPractise} />
+        {left > 0 ? (
+          <>
+            <PrimaryButton label={t.summary.continue(left)} onPress={() => run(onContinue)} />
+            <SecondaryButton label={t.summary.next} onPress={next} />
+          </>
+        ) : (
+          <PrimaryButton label={t.summary.next} onPress={next} />
         )}
         <SecondaryButton label={t.summary.changeSettings} onPress={onOpenSettings} />
       </View>

@@ -48,6 +48,16 @@ export const MIGRATIONS = [
   CREATE INDEX swipes_key ON swipes (key, id);`,
   `ALTER TABLE settings ADD COLUMN word_type TEXT NOT NULL DEFAULT 'all'
     CHECK (word_type IN ('all', 'noun', 'verb', 'adjective'));`,
+  // The batch being learned for each choice of settings (see batches.ts): its word keys as a JSON
+  // array, and the last swipe logged when it was dealt and when its current round started.
+  `CREATE TABLE batches (
+    deck TEXT PRIMARY KEY,
+    words TEXT NOT NULL,
+    start_swipe INTEGER NOT NULL,
+    round_swipe INTEGER NOT NULL,
+    number INTEGER NOT NULL,
+    dealt_at INTEGER NOT NULL
+  );`,
 ];
 
 export async function migrate(db: ProgressDb): Promise<void> {

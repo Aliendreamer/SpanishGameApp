@@ -1,6 +1,13 @@
 import { openTestDb, type TestDb } from '../../scripts/node-sqlite-db';
 
-import { getSettings, migrate, MIGRATIONS, saveSettings } from '@/storage/progress-db';
+import { saveBatch } from '@/storage/batches';
+import {
+  DEFAULT_SETTINGS,
+  getSettings,
+  migrate,
+  MIGRATIONS,
+  saveSettings,
+} from '@/storage/progress-db';
 import { clearSwipes, knownKeys, logSwipe } from '@/storage/swipes';
 
 let db: TestDb;
@@ -60,6 +67,17 @@ describe('clearSwipes', () => {
 
     expect(await knownKeys(db)).toEqual(new Set());
     expect((await getSettings(db)).level).toBe('advanced');
+  });
+});
+
+describe('clearSwipes and saved batches', () => {
+  // Swipe ids start over after a reset, so a batch kept past it could never be learned.
+  test('forgets every saved batch', async () => {
+    await saveBatch(db, DEFAULT_SETTINGS, { keys: ['casa|noun'], number: 0 });
+
+    await clearSwipes(db);
+
+    expect(await db.getFirstAsync('SELECT count(*) AS n FROM batches')).toEqual({ n: 0 });
   });
 });
 

@@ -37,8 +37,9 @@ export async function knownKeys(db: ProgressDb): Promise<Set<string>> {
   return new Set(rows.map((row) => row.key));
 }
 
-// "Reset progress": forget every answer, so every word is unknown again. Settings, the username,
-// and onboarding are kept (they live elsewhere).
+// "Reset progress": forget every answer and saved batch, so every word is unknown again. Settings,
+// the username, and onboarding are kept (they live elsewhere). Batches go first: swipe ids start
+// over, and a batch holding higher ones could never be learned.
 export async function clearSwipes(db: ProgressDb): Promise<void> {
-  await db.execAsync('DELETE FROM swipes');
+  await db.execAsync('DELETE FROM batches; DELETE FROM swipes');
 }

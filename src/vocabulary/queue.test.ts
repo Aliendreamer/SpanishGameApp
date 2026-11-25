@@ -1,5 +1,5 @@
 import type { DeckWord } from '@/vocabulary/deck';
-import { answerCard, batchSummary, isMatch, startBatch } from '@/vocabulary/queue';
+import { answerCard, answeredCount, batchSummary, isMatch, type Round } from '@/vocabulary/queue';
 
 const word = (lemma: string): DeckWord => ({
   key: `${lemma}|noun`,
@@ -14,37 +14,56 @@ const word = (lemma: string): DeckWord => ({
 const lemmas = (words: DeckWord[]) => words.map((w) => w.lemma);
 const three = ['casa', 'mesa', 'silla'].map(word);
 
-describe('batch queue', () => {
-  test('starts with the dealt words in order, nothing answered', () => {
-    const batch = startBatch(three);
+const firstRound = (words: DeckWord[]): Round => ({
+  queue: words,
+  size: words.length,
+  batchSize: words.length,
+  learned: 0,
+});
 
-    expect(lemmas(batch.queue)).toEqual(['casa', 'mesa', 'silla']);
-    expect(batch).toEqual(expect.objectContaining({ size: 3, known: 0, learning: [] }));
+describe('round', () => {
+  test('"I know it" removes the card and counts it as learned in the batch', () => {
+    const round = answerCard(firstRound(three), true);
+
+    expect(lemmas(round.queue)).toEqual(['mesa', 'silla']);
+    expect(round.learned).toBe(1);
   });
 
-  test('"I know it" removes the card and counts it', () => {
-    const batch = answerCard(startBatch(three), true);
+  test('"Still learning" removes the card too, without learning it', () => {
+    const round = answerCard(firstRound(three), false);
 
-    expect(lemmas(batch.queue)).toEqual(['mesa', 'silla']);
-    expect(batch.known).toBe(1);
+    expect(lemmas(round.queue)).toEqual(['mesa', 'silla']);
+    expect(round.learned).toBe(0);
   });
 
-  test('"Still learning" removes the card too, and records it for practice', () => {
-    const batch = answerCard(startBatch(three), false);
+  test('every answer counts toward the round', () => {
+    const round = answerCard(answerCard(firstRound(three), true), false);
 
-    expect(lemmas(batch.queue)).toEqual(['mesa', 'silla']);
-    expect(lemmas(batch.learning)).toEqual(['casa']);
-    expect(batch.known).toBe(0);
+    expect(answeredCount(round)).toBe(2);
+    expect(round.size).toBe(3);
   });
 
-  test('one pass ends the batch; the summary counts known and still learning', () => {
-    let batch = startBatch(three);
-    batch = answerCard(batch, false); // casa
-    batch = answerCard(batch, true); // mesa
-    batch = answerCard(batch, true); // silla
+  test('carries on from where it was resumed', () => {
+    const resumed: Round = { queue: three.slice(1), size: 3, batchSize: 10, learned: 7 };
 
-    expect(batch.queue).toEqual([]);
-    expect(batchSummary(batch)).toEqual({ size: 3, known: 2, learning: 1 });
+    expect(answeredCount(resumed)).toBe(1);
+    expect(answeredCount(answerCard(resumed, true))).toBe(2);
+  });
+
+  test('one pass ends it; the summary counts the whole batch over its rounds', () => {
+    let round: Round = { queue: three, size: 3, batchSize: 10, learned: 7 };
+    round = answerCard(round, false); // casa
+    round = answerCard(round, true); // mesa
+    round = answerCard(round, true); // silla
+
+    expect(round.queue).toEqual([]);
+    expect(batchSummary(round)).toEqual({ size: 10, known: 9, learning: 1 });
+  });
+
+  test('an answer with no card left changes nothing', () => {
+    const over: Round = { queue: [], size: 3, batchSize: 3, learned: 3 };
+
+    expect(answerCard(over, true)).toEqual(over);
   });
 });
 
@@ -55,7 +74,7 @@ describe('isMatch', () => {
     expect(isMatch(true, { direction: 'left', at: DEALT - 1 }, DEALT)).toBe(true);
   });
 
-  test('not for a miss in this batch or its practise round, a first answer, or a left answer', () => {
+  test('not for a miss in this batch or a later round of it, a first answer, or a left answer', () => {
     expect(isMatch(true, { direction: 'left', at: DEALT + 1 }, DEALT)).toBe(false);
     expect(isMatch(true, null, DEALT)).toBe(false);
     expect(isMatch(true, { direction: 'right', at: 0 }, DEALT)).toBe(false);

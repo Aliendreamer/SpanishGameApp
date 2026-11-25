@@ -11,31 +11,34 @@ import { BatchSummary } from '@/screens/swipe/summary';
 import { SwipeCard, type SwipeCardHandle } from '@/screens/swipe/swipe-card';
 import { colors, fonts, radii, spacing } from '@/theme';
 import type { DeckWord } from '@/vocabulary/deck';
-import { answerCard, batchSummary, startBatch } from '@/vocabulary/queue';
+import { answerCard, answeredCount, batchSummary, type Round } from '@/vocabulary/queue';
 
 type Props = {
   levelLine: string;
   username: string | null;
-  initialWords: DeckWord[];
+  initialRound: Round;
   // Saves an answer and resolves true for a match (a "Still learning" word now known); a
   // rejection shows the save-failure banner, and the game carries on.
   onAnswer: (word: DeckWord, knowIt: boolean) => Promise<boolean>;
-  onNextBatch: () => Promise<DeckWord[]>;
+  // A round of the batch's words not learned yet, and a new batch's first round.
+  onNextRound: () => Promise<Round>;
+  onNextBatch: () => Promise<Round>;
   onOpenSettings: () => void;
 };
 
 // The Swipe tab (docs/design/swipe-game-ui/README.md, "Swipe tab"): one card at a time — tap it
-// or ↻ to flip, swipe or use the buttons to answer — one pass per batch, then a choice.
+// or ↻ to flip, swipe or use the buttons to answer — one pass per round, then a choice.
 export function Swipe({
   levelLine,
   username,
-  initialWords,
+  initialRound,
   onAnswer,
+  onNextRound,
   onNextBatch,
   onOpenSettings,
 }: Props) {
   const t = useT();
-  const [batch, setBatch] = useState(() => startBatch(initialWords));
+  const [round, setRound] = useState(initialRound);
   // Counts answers, so each card mounts fresh even when the same word comes straight back.
   const [turn, setTurn] = useState(0);
   const [saveFailed, setSaveFailed] = useState(false);
@@ -45,17 +48,17 @@ export function Swipe({
   const [flippedTurn, setFlippedTurn] = useState<number | null>(null);
   const flipped = flippedTurn === turn;
   const card = useRef<SwipeCardHandle>(null);
-  // The latest answer's save: "Next batch" waits for it, so a word just answered is never dealt
-  // again because its swipe wasn't stored yet.
+  // The latest answer's save: the next round or batch waits for it, so a word just answered is never
+  // dealt again because its swipe wasn't stored yet.
   const lastSave = useRef<Promise<void>>(Promise.resolve());
 
-  const word = batch.queue[0];
-  // Progress through the pass: every answer counts, so a batch ends at size / size.
-  const answered = batch.size - batch.queue.length;
+  const word = round.queue[0];
+  // Progress through the round: every answer counts, so it ends at size / size.
+  const answered = answeredCount(round);
 
   // Called once the card has flown out.
   const answer = (knowIt: boolean) => {
-    setBatch(answerCard(batch, knowIt));
+    setRound(answerCard(round, knowIt));
     setTurn(turn + 1);
     lastSave.current = onAnswer(word, knowIt).then(
       (isMatch) => {
@@ -66,14 +69,9 @@ export function Swipe({
     );
   };
 
-  const nextBatch = async () => {
+  const open = async (load: () => Promise<Round>) => {
     await lastSave.current;
-    setBatch(startBatch(await onNextBatch()));
-    setTurn(turn + 1);
-  };
-  // Another pass over just the words answered "Still learning".
-  const practise = () => {
-    setBatch(startBatch(batch.learning));
+    setRound(await load());
     setTurn(turn + 1);
   };
 
@@ -89,8 +87,8 @@ export function Swipe({
           </Text>
         </View>
         <View style={styles.progress}>
-          <Text style={styles.progressText}>{`${answered} / ${batch.size}`}</Text>
-          <ProgressRing value={answered} max={batch.size} />
+          <Text style={styles.progressText}>{`${answered} / ${round.size}`}</Text>
+          <ProgressRing value={answered} max={round.size} />
         </View>
       </View>
       {saveFailed && (
@@ -99,19 +97,19 @@ export function Swipe({
         </View>
       )}
 
-      {batch.size === 0 ? (
+      {round.batchSize === 0 ? (
         <EmptyDeck onOpenSettings={onOpenSettings} />
       ) : !word ? (
         <BatchSummary
-          summary={batchSummary(batch)}
-          onNext={nextBatch}
-          onPractise={practise}
+          summary={batchSummary(round)}
+          onNext={() => open(onNextBatch)}
+          onContinue={() => open(onNextRound)}
           onOpenSettings={onOpenSettings}
         />
       ) : (
         <>
           <View style={styles.cardArea}>
-            {batch.queue.length > 1 && <View testID="next-card" style={styles.nextCard} />}
+            {round.queue.length > 1 && <View testID="next-card" style={styles.nextCard} />}
             <SwipeCard
               ref={card}
               key={turn}
