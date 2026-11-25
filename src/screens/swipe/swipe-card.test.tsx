@@ -3,6 +3,7 @@ import { createRef } from 'react';
 import { State } from 'react-native-gesture-handler';
 import { fireGestureHandler, getByGestureTestId } from 'react-native-gesture-handler/jest-utils';
 
+import { TAP_DISTANCE } from '@/screens/swipe/motion';
 import { SwipeCard, type SwipeCardHandle } from '@/screens/swipe/swipe-card';
 import type { DeckWord } from '@/vocabulary/deck';
 
@@ -28,23 +29,34 @@ async function renderCard() {
   return { onAnswer, onFlip, ref };
 }
 
-// A drag that ends `dx` dp from where it started (`dy` vertically), released or cancelled.
-async function drag(dx: number, { dy = 0, end = State.END }: { dy?: number; end?: State } = {}) {
+// A drag that ends `dx` dp from where it started, released or cancelled.
+async function drag(dx: number, end: State = State.END) {
   await act(async () => {
     fireGestureHandler(getByGestureTestId('swipe-card'), [
-      { state: State.BEGAN, translationX: 0, translationY: 0 },
-      { state: State.ACTIVE, translationX: dx, translationY: dy },
-      { state: end, translationX: dx, translationY: dy },
+      { state: State.BEGAN, translationX: 0 },
+      { state: State.ACTIVE, translationX: dx },
+      { state: end, translationX: dx },
+    ]);
+  });
+}
+
+// A tap as the phone's own recogniser reports it: no movement involved.
+async function tap(end: State = State.END) {
+  await act(async () => {
+    fireGestureHandler(getByGestureTestId('swipe-card-tap'), [
+      { state: State.BEGAN },
+      { state: State.ACTIVE },
+      { state: end },
     ]);
   });
 }
 
 describe('<SwipeCard />', () => {
-  test('starts front-side up; a tap (under 12 dp) turns it over', async () => {
+  test('starts front-side up; a tap turns it over', async () => {
     const { onAnswer } = await renderCard();
     expect(screen.getByText('Tap to see the meaning')).toBeOnTheScreen();
 
-    await drag(3);
+    await tap();
 
     expect(screen.getByText('house')).toBeOnTheScreen();
     expect(screen.queryByText('Tap to see the meaning')).toBeNull();
@@ -74,19 +86,34 @@ describe('<SwipeCard />', () => {
     expect(screen.getByText('Tap to see the meaning')).toBeOnTheScreen();
   });
 
-  test('a long vertical drag neither flips nor answers', async () => {
-    const { onAnswer } = await renderCard();
+  test('a drag that ends where it started neither flips nor answers', async () => {
+    const { onAnswer, onFlip } = await renderCard();
 
-    await drag(2, { dy: 200 });
+    await drag(0);
 
     expect(onAnswer).not.toHaveBeenCalled();
-    expect(screen.getByText('Tap to see the meaning')).toBeOnTheScreen();
+    expect(onFlip).not.toHaveBeenCalled();
+  });
+
+  test('a cancelled tap does not flip', async () => {
+    const { onFlip } = await renderCard();
+
+    await tap(State.CANCELLED);
+
+    expect(onFlip).not.toHaveBeenCalled();
+  });
+
+  test('a touch is a tap up to the distance where it becomes a drag', async () => {
+    await renderCard();
+
+    expect(getByGestureTestId('swipe-card-tap').config).toMatchObject({ maxDist: TAP_DISTANCE });
+    expect(getByGestureTestId('swipe-card').config).toMatchObject({ minDist: TAP_DISTANCE });
   });
 
   test('a cancelled drag springs back instead of answering', async () => {
     const { onAnswer } = await renderCard();
 
-    await drag(120, { end: State.CANCELLED });
+    await drag(120, State.CANCELLED);
 
     expect(onAnswer).not.toHaveBeenCalled();
   });
@@ -119,9 +146,18 @@ describe('<SwipeCard />', () => {
   test('a tap reports the flip too', async () => {
     const { onFlip } = await renderCard();
 
-    await drag(3);
+    await tap();
 
     expect(onFlip).toHaveBeenCalledWith(true);
+  });
+
+  test('a tap does nothing once the card is flying out', async () => {
+    const { onFlip, ref } = await renderCard();
+
+    await act(async () => ref.current?.answer(true));
+    await tap();
+
+    expect(onFlip).not.toHaveBeenCalled();
   });
 
   test('flip() does nothing once the card is flying out', async () => {

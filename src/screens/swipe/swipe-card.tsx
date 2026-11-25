@@ -18,6 +18,7 @@ import {
   FLY_ROTATION,
   releaseOutcome,
   stampOpacities,
+  TAP_DISTANCE,
 } from '@/screens/swipe/motion';
 import { colors, fonts, radii } from '@/theme';
 import type { DeckWord } from '@/vocabulary/deck';
@@ -26,6 +27,8 @@ import type { DeckWord } from '@/vocabulary/deck';
 const SPRING_BACK = { duration: 300, easing: Easing.bezier(0.2, 0.7, 0.3, 1) };
 const FLY_OUT = { duration: 300 };
 const FLIP = { duration: 450, easing: Easing.bezier(0.3, 0.7, 0.3, 1) };
+// In effect no limit: a slow press flips too (the gesture library's default is 500 ms).
+const TAP_MAX_DURATION = 60_000;
 
 export type SwipeCardHandle = {
   // Flies the card out as if swiped: right for "I know it", left for "Still learning".
@@ -75,9 +78,8 @@ export function SwipeCard({ word, onAnswer, onFlip, ref }: Props) {
 
   useImperativeHandle(ref, () => ({ answer: flyOut, flip }));
 
-  // minDistance 0: the pan starts on touch, so a release under the tap distance can flip the card.
   const pan = Gesture.Pan()
-    .minDistance(0)
+    .minDistance(TAP_DISTANCE)
     .withTestId('swipe-card')
     .onUpdate((event) => {
       if (!leaving.get()) dx.set(event.translationX);
@@ -85,13 +87,18 @@ export function SwipeCard({ word, onAnswer, onFlip, ref }: Props) {
     .onEnd((event, success) => {
       if (leaving.get()) return;
       // A cancelled touch (the system took it) is not a release: spring back, answer nothing.
-      const outcome = success ? releaseOutcome(event.translationX, event.translationY) : 'back';
-      if (outcome === 'know' || outcome === 'learn') {
-        flyOut(outcome === 'know');
-        return;
-      }
-      dx.set(withTiming(0, SPRING_BACK));
-      if (outcome === 'tap') scheduleOnRN(flip);
+      const outcome = success ? releaseOutcome(event.translationX) : 'back';
+      if (outcome === 'back') dx.set(withTiming(0, SPRING_BACK));
+      else flyOut(outcome === 'know');
+    });
+  // A gesture of its own: Android ends a pan without calling onEnd when the finger never moves, so
+  // the pan can't see a still tap.
+  const tap = Gesture.Tap()
+    .maxDistance(TAP_DISTANCE)
+    .maxDuration(TAP_MAX_DURATION)
+    .withTestId('swipe-card-tap')
+    .onEnd((_event, success) => {
+      if (success) scheduleOnRN(flip);
     });
 
   const cardStyle = useAnimatedStyle(() => {
@@ -116,7 +123,7 @@ export function SwipeCard({ word, onAnswer, onFlip, ref }: Props) {
   }));
 
   return (
-    <GestureDetector gesture={pan}>
+    <GestureDetector gesture={Gesture.Race(pan, tap)}>
       <Animated.View
         accessible
         accessibilityRole="button"

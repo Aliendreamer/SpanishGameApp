@@ -1,4 +1,6 @@
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { State } from 'react-native-gesture-handler';
+import { fireGestureHandler, getByGestureTestId } from 'react-native-gesture-handler/jest-utils';
 
 import { InBulgarian } from '@/i18n/testing';
 import { Swipe } from '@/screens/swipe';
@@ -42,10 +44,14 @@ async function renderSwipe({
   );
   return { onAnswer, onNextBatch, onOpenSettings };
 }
-const card = () => screen.getByRole('button', { name: /^Card:/ });
-// A tap on the card, through the accessibility action the gesture's tap mirrors.
 const tapCard = () =>
-  fireEvent(card(), 'accessibilityAction', { nativeEvent: { actionName: 'activate' } });
+  act(async () => {
+    fireGestureHandler(getByGestureTestId('swipe-card-tap'), [
+      { state: State.BEGAN },
+      { state: State.ACTIVE },
+      { state: State.END },
+    ]);
+  });
 const know = () => fireEvent.press(screen.getByRole('button', { name: 'I know it' }));
 const learn = () => fireEvent.press(screen.getByRole('button', { name: 'Still learning' }));
 

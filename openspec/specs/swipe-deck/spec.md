@@ -2,7 +2,9 @@
 
 ## Purpose
 TBD - created by archiving change swipe-card. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Deck of words
 
 The Swipe tab SHALL deal up to 100 words matching the saved level settings — Beginner A1 and A2,
@@ -97,11 +99,12 @@ while the front shows and "Show word" while the back shows.
 
 ### Requirement: Swipe to answer
 
-The card SHALL follow a horizontal drag, moving by the drag distance and rotating by a twentieth
-of it in degrees. On release, a drag past 90 dp to the right SHALL answer "I know it" and to the
-left "Still learning", flying the card out (±560 dp, ±24°, 300 ms); a release under 12 dp from
-the start in any direction SHALL count as a tap and flip the card; any other release, and any
-cancelled touch, SHALL spring the card back to the centre over 300 ms.
+A touch that is released before moving 12 dp in any direction, including one that does not move at
+all, SHALL count as a tap and flip the card. Past 12 dp the card SHALL follow the horizontal drag
+from there, moving by the drag distance and rotating by a twentieth of it in degrees. On release, a
+drag past 90 dp to the right SHALL answer "I know it" and to the left "Still learning", flying the
+card out (±560 dp, ±24°, 300 ms); any other release of a drag, and any cancelled touch, SHALL spring
+the card back to the centre over 300 ms without flipping it.
 
 #### Scenario: Swipe right
 
@@ -118,10 +121,25 @@ cancelled touch, SHALL spring the card back to the centre over 300 ms.
 - **WHEN** the user touches the card and lets go after moving 3 dp
 - **THEN** the card flips
 
+#### Scenario: Tap without any movement
+
+- **WHEN** the user touches the card and lets go without the finger moving at all
+- **THEN** the card flips
+
 #### Scenario: Tap with finger drift
 
 - **WHEN** the user touches the card and lets go after moving 10 dp
 - **THEN** the card flips
+
+#### Scenario: Drag back to the start
+
+- **WHEN** the user drags the card 50 dp, drags it back to where it was, and lets go
+- **THEN** the card stays centred, does not flip, and nothing is answered
+
+#### Scenario: Cancelled touch
+
+- **WHEN** the system cancels a touch on the card
+- **THEN** the card is centred, does not flip, and nothing is answered
 
 ### Requirement: Swipe stamps
 
@@ -245,4 +263,3 @@ the level line is unchanged.
 
 - **WHEN** the word type is All words
 - **THEN** nouns, verbs, adjectives, and other words are all dealt
-
