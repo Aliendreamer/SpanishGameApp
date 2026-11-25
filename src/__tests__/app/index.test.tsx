@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
 import { router as appRouter } from 'expo-router';
 import { renderRouter } from 'expo-router/testing-library';
@@ -66,6 +66,22 @@ async function renderApp(initialUrl = '/', launch = firstLaunch) {
   const router = renderRouter(routes, { initialUrl, wrapper });
   await router;
   return { router };
+}
+
+// Waits for something asynchronous, like a row in the database. Under renderRouter's fake timers,
+// waitFor with an async check can resolve while its own act() still runs, and the next event then
+// overlaps it; this finishes each step before the next.
+async function eventually(check: () => Promise<void>, tries = 20) {
+  for (let left = tries; ; left--) {
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(50);
+    });
+    try {
+      return await check();
+    } catch (error) {
+      if (left <= 1) throw error;
+    }
+  }
 }
 
 const backLink = () => screen.queryByRole('button', { name: 'Back' });
@@ -284,7 +300,7 @@ describe('launch routing', () => {
 
     await fireEvent.press(screen.getByRole('button', { name: 'I know it' }));
 
-    await waitFor(async () =>
+    await eventually(async () =>
       expect(await mockDb.getAllAsync('SELECT key, direction FROM swipes')).toEqual([
         { key: expect.stringMatching(new RegExp(`^${lemma}\\|`)), direction: 'right' },
       ]),
@@ -315,7 +331,7 @@ describe('launch routing', () => {
 
     await fireEvent.press(screen.getByRole('button', { name: 'Still learning' }));
 
-    await waitFor(async () =>
+    await eventually(async () =>
       expect(await mockDb.getFirstAsync('SELECT count(*) AS n FROM swipes')).toEqual({ n: 2 }),
     );
     expect(screen.queryByRole('header', { name: "It's a match!" })).toBeNull();
@@ -326,7 +342,7 @@ describe('launch routing', () => {
     const card = await screen.findByRole('button', { name: /^Card:/ });
     const lemma = String(card.props.accessibilityLabel).replace('Card: ', '');
     await fireEvent.press(screen.getByRole('button', { name: 'I know it' }));
-    await waitFor(async () =>
+    await eventually(async () =>
       expect(await mockDb.getFirstAsync('SELECT count(*) AS n FROM swipes')).toEqual({ n: 1 }),
     );
     await fireEvent.press(screen.getByRole('tab', { name: 'Words' }));
@@ -348,7 +364,7 @@ describe('launch routing', () => {
     await renderApp('/swipe', { ...done, showTutorial: false });
     await screen.findByRole('button', { name: /^Card:/ });
     await fireEvent.press(screen.getByRole('button', { name: 'I know it' }));
-    await waitFor(async () =>
+    await eventually(async () =>
       expect(await mockDb.getFirstAsync('SELECT count(*) AS n FROM swipes')).toEqual({ n: 1 }),
     );
     await fireEvent.press(screen.getByRole('tab', { name: 'Progress' }));
@@ -373,7 +389,7 @@ describe('launch routing', () => {
     ]);
 
     await fireEvent.press(screen.getByRole('button', { name: 'I know it' }));
-    await waitFor(async () =>
+    await eventually(async () =>
       expect(await mockDb.getFirstAsync('SELECT count(*) AS n FROM swipes')).toEqual({ n: 2 }),
     );
 
@@ -393,7 +409,7 @@ describe('launch routing', () => {
 
       await fireEvent.press(await screen.findByRole('radio', { name: /^Intermediate/ }));
       await fireEvent.press(screen.getByRole('switch', { name: 'Include lower levels' }));
-      await waitFor(async () =>
+      await eventually(async () =>
         expect(await getSettings(mockDb)).toEqual(
           expect.objectContaining({ level: 'intermediate', includeLower: false }),
         ),
@@ -430,7 +446,7 @@ describe('launch routing', () => {
       await openSettingsFromSwipe();
 
       await fireEvent.press(await screen.findByRole('radio', { name: /^Verbs/ }));
-      await waitFor(async () => expect((await getSettings(mockDb)).wordType).toBe('verb'));
+      await eventually(async () => expect((await getSettings(mockDb)).wordType).toBe('verb'));
       await fireEvent.press(screen.getByRole('tab', { name: 'Swipe' }));
 
       expect(await screen.findByText('Beginner · A1, A2 · Verbs')).toBeOnTheScreen();
@@ -447,7 +463,7 @@ describe('launch routing', () => {
       await renderApp('/swipe', { ...done, showTutorial: false });
       await screen.findByRole('button', { name: /^Card:/ });
       await fireEvent.press(screen.getByRole('button', { name: 'I know it' }));
-      await waitFor(async () =>
+      await eventually(async () =>
         expect(await mockDb.getFirstAsync('SELECT count(*) AS n FROM swipes')).toEqual({ n: 1 }),
       );
       await fireEvent.press(screen.getByRole('tab', { name: 'Settings' }));

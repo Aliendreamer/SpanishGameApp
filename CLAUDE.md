@@ -81,7 +81,9 @@ would orphan. Generated files are committed; never hand-edit them. The tool has 
 - Jest: `jest.setup.js` swaps in the worklets and Reanimated test mocks. Expo Router's
   `renderRouter` puts `getPathname` on the promise it returns, so keep that object and `await` it
   separately. `renderRouter` also turns on fake timers, under which a `waitFor` makes the router
-  ignore later `router.push` calls: navigate first, then assert on storage.
+  ignore later `router.push` calls: navigate first, then assert on storage. Never give `waitFor` an async
+  check there (it can resolve while its own `act()` runs, and later tests then fail on an empty
+  screen): wait on the database with the `eventually` helper in `src/__tests__/app/index.test.tsx`.
 
 ## OpenSpec
 
