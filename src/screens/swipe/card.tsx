@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
+import { GestureDetector, type GestureType } from 'react-native-gesture-handler';
 
 import { partOfSpeechName, useT } from '@/i18n';
 import { colors, fonts, radii, shadows } from '@/theme';
@@ -39,10 +40,35 @@ export function CardFront({ word }: { word: DeckWord }) {
   );
 }
 
-// The cream back with meanings and one example ("Swipe card, back").
-export function CardBack({ word }: { word: DeckWord }) {
+// The cream back with meanings and one example ("Swipe card, back"). With more than one, the box
+// shows which it is and takes `exampleTap`, which shows the next.
+export function CardBack({
+  word,
+  example = 0,
+  exampleTap,
+}: {
+  word: DeckWord;
+  // Which example to show, from 0.
+  example?: number;
+  exampleTap?: GestureType;
+}) {
   const t = useT();
   const size = meaningSize(word.meanings);
+  const count = word.examples.length;
+  const shown = word.examples[example];
+
+  const box = shown && (
+    <View style={styles.example}>
+      <Text style={styles.exampleSpanish}>{shown.spanish}</Text>
+      <Text style={styles.exampleEnglish}>{shown.english}</Text>
+      {count > 1 && (
+        <View style={styles.examplePlace}>
+          <Text style={styles.examplePlaceText}>{`${example + 1} / ${count}`}</Text>
+          <Text style={styles.exampleNext}>›</Text>
+        </View>
+      )}
+    </View>
+  );
 
   return (
     <View style={styles.back}>
@@ -63,11 +89,10 @@ export function CardBack({ word }: { word: DeckWord }) {
           </Text>
         ))}
       </View>
-      {word.example && (
-        <View style={styles.example}>
-          <Text style={styles.exampleSpanish}>{word.example.spanish}</Text>
-          <Text style={styles.exampleEnglish}>{word.example.english}</Text>
-        </View>
+      {box && exampleTap && count > 1 ? (
+        <GestureDetector gesture={exampleTap}>{box}</GestureDetector>
+      ) : (
+        box
       )}
     </View>
   );
@@ -183,5 +208,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     color: colors.textSecondary,
+  },
+  examplePlace: {
+    flexDirection: 'row',
+    alignSelf: 'flex-end',
+    alignItems: 'center',
+    gap: 6,
+  },
+  examplePlaceText: {
+    fontFamily: fonts.semiBold,
+    fontSize: 12,
+    color: colors.textSecondary,
+  },
+  exampleNext: {
+    fontFamily: fonts.extraBold,
+    fontSize: 20,
+    lineHeight: 22,
+    color: colors.rose,
   },
 });

@@ -46,8 +46,8 @@ type Props = {
   ref?: Ref<SwipeCardHandle>;
 };
 
-// One word card: drag to answer, tap to flip. The screen mounts a fresh one per word, so every card
-// starts centred and front-side up.
+// One word card: drag to answer, tap to flip, tap the example box for the next sentence. The screen
+// mounts a fresh one per word, so every card starts centred, front-side up, at its first sentence.
 export function SwipeCard({ word, onAnswer, onFlip, ref }: Props) {
   const t = useT();
   const dx = useSharedValue(0);
@@ -56,6 +56,13 @@ export function SwipeCard({ word, onAnswer, onFlip, ref }: Props) {
   // Set once the card starts flying out: no more drags or answers for this card.
   const leaving = useSharedValue(false);
   const [flipped, setFlipped] = useState(false);
+  // Which example sentence the back shows; kept across flips.
+  const [example, setExample] = useState(0);
+  const browsable = flipped && word.examples.length > 1;
+
+  const nextExample = () => {
+    if (browsable) setExample((shown) => (shown + 1) % word.examples.length);
+  };
 
   const flip = () => {
     if (leaving.get()) return;
@@ -100,6 +107,17 @@ export function SwipeCard({ word, onAnswer, onFlip, ref }: Props) {
     .onEnd((_event, success) => {
       if (success) scheduleOnRN(flip);
     });
+  // A tap on the example box shows the next sentence instead of flipping. Only the card's tap is
+  // blocked, so a drag that starts on the box still swipes.
+  const exampleTap = Gesture.Tap()
+    .enabled(browsable)
+    .maxDistance(TAP_DISTANCE)
+    .maxDuration(TAP_MAX_DURATION)
+    .blocksExternalGesture(tap)
+    .withTestId('swipe-card-example')
+    .onEnd((_event, success) => {
+      if (success) scheduleOnRN(nextExample);
+    });
 
   const cardStyle = useAnimatedStyle(() => {
     const rotation = leaving.get()
@@ -133,9 +151,11 @@ export function SwipeCard({ word, onAnswer, onFlip, ref }: Props) {
           { name: 'activate' },
           { name: 'know', label: t.swipe.know },
           { name: 'learn', label: t.swipe.learn },
+          ...(browsable ? [{ name: 'example', label: t.swipe.nextExample }] : []),
         ]}
         onAccessibilityAction={({ nativeEvent }) => {
           if (nativeEvent.actionName === 'activate') flip();
+          else if (nativeEvent.actionName === 'example') nextExample();
           else flyOut(nativeEvent.actionName === 'know');
         }}
         style={[styles.card, cardStyle]}
@@ -153,7 +173,7 @@ export function SwipeCard({ word, onAnswer, onFlip, ref }: Props) {
           importantForAccessibility={flipped ? 'auto' : 'no-hide-descendants'}
           style={[styles.face, backFace]}
         >
-          <CardBack word={word} />
+          <CardBack word={word} example={example} exampleTap={exampleTap} />
         </Animated.View>
         <Animated.View style={[styles.stamp, styles.knowStamp, knowStamp]} pointerEvents="none">
           <Text style={styles.stampText}>{t.swipe.know}</Text>

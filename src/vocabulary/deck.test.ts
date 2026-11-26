@@ -56,7 +56,7 @@ describe('getDeck', () => {
     expect(isInDeckOrder(deck)).toBe(true);
   });
 
-  test('each word carries its article, part of speech, up to 3 meanings, and an example', async () => {
+  test('each word carries its article, part of speech, up to 3 meanings, and its examples', async () => {
     const deck = await getDeck(db, settings({ level: 'beginner' }), { limit: 5000 });
     const casa = deck.find((word) => word.key === 'casa|noun');
 
@@ -67,11 +67,21 @@ describe('getDeck', () => {
         partOfSpeech: 'noun',
         level: 'A1',
         meanings: expect.arrayContaining(['house']),
-        example: { spanish: expect.any(String), english: expect.any(String) },
       }),
     );
     expect(deck.every((word) => word.meanings.length >= 1 && word.meanings.length <= 3)).toBe(true);
     expect(deck.filter((word) => word.partOfSpeech !== 'noun').every((w) => !w.article)).toBe(true);
+  });
+
+  test('each word carries up to 3 examples in priority order, or none', async () => {
+    const [casa, ella] = await getWords(db, ['casa|noun', 'ella|pronoun']);
+    const stored = await db.getAllAsync<{ spanish: string; english: string }>(
+      "SELECT spanish, english FROM vocab.examples WHERE key = 'casa|noun' ORDER BY priority",
+    );
+
+    expect(stored).toHaveLength(3);
+    expect(casa.examples).toEqual(stored);
+    expect(ella.examples).toEqual([]);
   });
 
   test('leaves out known words unless known words are included, which keeps the order', async () => {

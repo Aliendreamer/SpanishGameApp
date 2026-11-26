@@ -20,8 +20,8 @@ without a level, 8,110 (54%) have one.
 ## Decided here, for the user to confirm
 
 - The sentences go on the card, not on the My words tab.
-- The tester has not yet said what she wants beyond the one sentence already shown; ask before
-  building this.
+- The user chose this option (2026-11-26) over sentences in My words, Bulgarian translations, and a
+  fill-in-the-gap exercise.
 
 ## Non-goals
 

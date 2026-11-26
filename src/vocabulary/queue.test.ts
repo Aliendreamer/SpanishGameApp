@@ -9,7 +9,7 @@ const word = (lemma: string): DeckWord => ({
   partOfSpeech: 'noun',
   rank: 1,
   meanings: [lemma],
-  example: null,
+  examples: [],
 });
 const lemmas = (words: DeckWord[]) => words.map((w) => w.lemma);
 const three = ['casa', 'mesa', 'silla'].map(word);

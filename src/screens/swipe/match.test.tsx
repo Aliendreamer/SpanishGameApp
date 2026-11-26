@@ -14,7 +14,7 @@ const casa: DeckWord = {
   partOfSpeech: 'noun',
   rank: 108,
   meanings: ['house', 'home'],
-  example: null,
+  examples: [],
 };
 
 describe('<MatchOverlay />', () => {

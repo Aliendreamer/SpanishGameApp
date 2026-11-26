@@ -12,7 +12,7 @@ const casa: DeckWord = {
   partOfSpeech: 'noun',
   rank: 108,
   meanings: ['house', 'home'],
-  example: { spanish: 'No voy a mi casa.', english: "I'm not going home." },
+  examples: [{ spanish: 'No voy a mi casa.', english: "I'm not going home." }],
 };
 
 describe('card front', () => {
@@ -43,8 +43,30 @@ describe('card back', () => {
     expect(screen.getByText("I'm not going home.")).toBeOnTheScreen();
   });
 
+  test('shows the chosen example with its place and a "›" when there are more', async () => {
+    const examples = [
+      { spanish: 'No voy a mi casa.', english: "I'm not going home." },
+      { spanish: 'Me voy a mi casa.', english: "I'm going to my house." },
+      { spanish: 'No voy a tu casa.', english: "I'm not going to your house." },
+    ];
+    await render(<CardBack word={{ ...casa, examples }} example={1} />);
+
+    expect(screen.getByText('Me voy a mi casa.')).toBeOnTheScreen();
+    expect(screen.getByText("I'm going to my house.")).toBeOnTheScreen();
+    expect(screen.queryByText('No voy a mi casa.')).toBeNull();
+    expect(screen.getByText('2 / 3')).toBeOnTheScreen();
+    expect(screen.getByText('›')).toBeOnTheScreen();
+  });
+
+  test('shows no place or "›" for a single example', async () => {
+    await render(<CardBack word={casa} />);
+
+    expect(screen.queryByText('1 / 1')).toBeNull();
+    expect(screen.queryByText('›')).toBeNull();
+  });
+
   test('leaves out the example box when the word has no example', async () => {
-    await render(<CardBack word={{ ...casa, example: null }} />);
+    await render(<CardBack word={{ ...casa, examples: [] }} />);
 
     expect(screen.queryByText('No voy a mi casa.')).toBeNull();
   });

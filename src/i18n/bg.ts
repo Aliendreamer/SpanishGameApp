@@ -85,6 +85,7 @@ export const bg: Strings = {
     showsWord: 'Показва думата',
     flipToMeaning: 'Покажи значението',
     flipToWord: 'Покажи думата',
+    nextExample: 'Следващ пример',
   },
   summary: {
     roundTitle: 'Кръгът е готов',

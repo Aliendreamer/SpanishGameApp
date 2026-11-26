@@ -15,7 +15,7 @@ const word = (lemma: string, meaning = lemma): DeckWord => ({
   partOfSpeech: 'noun',
   rank: 1,
   meanings: [meaning],
-  example: null,
+  examples: [],
 });
 // A batch's first round of these words.
 const roundOf = (queue: DeckWord[]): Round => ({
@@ -114,6 +114,32 @@ describe('<Swipe />', () => {
 
     await know();
     expect(screen.getByRole('button', { name: 'Show meaning' })).toBeOnTheScreen();
+  });
+
+  test('the next card starts at its first example sentence', async () => {
+    const examples = (lemma: string) =>
+      [1, 2, 3].map((n) => ({ spanish: `${lemma} ${n}`, english: `${lemma} ${n} en` }));
+    await renderSwipe({
+      round: roundOf([
+        { ...word('casa', 'house'), examples: examples('casa') },
+        { ...word('mesa', 'table'), examples: examples('mesa') },
+      ]),
+    });
+    await tapCard();
+    await act(async () => {
+      fireGestureHandler(getByGestureTestId('swipe-card-example'), [
+        { state: State.BEGAN },
+        { state: State.ACTIVE },
+        { state: State.END },
+      ]);
+    });
+    expect(screen.getByText('casa 2')).toBeOnTheScreen();
+
+    await know();
+    await tapCard();
+
+    expect(screen.getByText('mesa 1')).toBeOnTheScreen();
+    expect(screen.getByText('1 / 3')).toBeOnTheScreen();
   });
 
   test('"I know it" reports the answer, counts it, and shows the next card', async () => {

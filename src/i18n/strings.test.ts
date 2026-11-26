@@ -65,3 +65,10 @@ describe('round texts', () => {
     expect(bg.summary).not.toHaveProperty('practise');
   });
 });
+
+describe('example texts', () => {
+  test('name the action that shows the next example sentence', () => {
+    expect(en.swipe.nextExample).toBe('Next example');
+    expect(bg.swipe.nextExample).toBe('Следващ пример');
+  });
+});

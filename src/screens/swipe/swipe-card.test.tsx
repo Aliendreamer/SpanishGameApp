@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { createRef } from 'react';
 import { State } from 'react-native-gesture-handler';
 import { fireGestureHandler, getByGestureTestId } from 'react-native-gesture-handler/jest-utils';
@@ -18,14 +18,20 @@ const casa: DeckWord = {
   partOfSpeech: 'noun',
   rank: 108,
   meanings: ['house'],
-  example: null,
+  examples: [],
 };
 
-async function renderCard() {
+const EXAMPLES = [
+  { spanish: 'No voy a mi casa.', english: "I'm not going home." },
+  { spanish: 'Me voy a mi casa.', english: "I'm going to my house." },
+  { spanish: 'No voy a tu casa.', english: "I'm not going to your house." },
+];
+
+async function renderCard(word: DeckWord = casa) {
   const onAnswer = jest.fn();
   const onFlip = jest.fn();
   const ref = createRef<SwipeCardHandle>();
-  await render(<SwipeCard ref={ref} word={casa} onAnswer={onAnswer} onFlip={onFlip} />);
+  await render(<SwipeCard ref={ref} word={word} onAnswer={onAnswer} onFlip={onFlip} />);
   return { onAnswer, onFlip, ref };
 }
 
@@ -41,9 +47,9 @@ async function drag(dx: number, end: State = State.END) {
 }
 
 // A tap as the phone's own recogniser reports it: no movement involved.
-async function tap(end: State = State.END) {
+async function tap(end: State = State.END, testId = 'swipe-card-tap') {
   await act(async () => {
-    fireGestureHandler(getByGestureTestId('swipe-card-tap'), [
+    fireGestureHandler(getByGestureTestId(testId), [
       { state: State.BEGAN },
       { state: State.ACTIVE },
       { state: end },
@@ -169,5 +175,85 @@ describe('<SwipeCard />', () => {
     });
 
     expect(onFlip).not.toHaveBeenCalled();
+  });
+
+  describe('example sentences', () => {
+    const tapExample = () => tap(State.END, 'swipe-card-example');
+    const actionsOfCard = () =>
+      (screen.getByLabelText('Card: casa').props.accessibilityActions as { name: string }[]).map(
+        (action) => action.name,
+      );
+
+    test('a tap on the box shows the next sentence and leaves the card flipped', async () => {
+      const { onFlip } = await renderCard({ ...casa, examples: EXAMPLES });
+      await tap();
+
+      await tapExample();
+
+      expect(screen.getByText('Me voy a mi casa.')).toBeOnTheScreen();
+      expect(screen.getByText("I'm going to my house.")).toBeOnTheScreen();
+      expect(screen.getByText('2 / 3')).toBeOnTheScreen();
+      expect(onFlip).toHaveBeenCalledTimes(1);
+    });
+
+    test('returns to the first sentence after the last', async () => {
+      await renderCard({ ...casa, examples: EXAMPLES });
+      await tap();
+
+      await tapExample();
+      await tapExample();
+      await tapExample();
+
+      expect(screen.getByText('No voy a mi casa.')).toBeOnTheScreen();
+      expect(screen.getByText('1 / 3')).toBeOnTheScreen();
+    });
+
+    test('flipping to the front and back keeps the place', async () => {
+      await renderCard({ ...casa, examples: EXAMPLES });
+      await tap();
+      await tapExample();
+
+      await tap();
+      await tap();
+
+      expect(screen.getByText('2 / 3')).toBeOnTheScreen();
+    });
+
+    test('a tap on the box does nothing while the front is showing', async () => {
+      await renderCard({ ...casa, examples: EXAMPLES });
+
+      await tapExample();
+      await tap();
+
+      expect(screen.getByText('1 / 3')).toBeOnTheScreen();
+    });
+
+    test('a single sentence has no gesture of its own, so a tap there flips', async () => {
+      await renderCard({ ...casa, examples: EXAMPLES.slice(0, 1) });
+
+      expect(() => getByGestureTestId('swipe-card-example')).toThrow();
+    });
+
+    test('screen readers get "Next example" on a flipped card with more than one sentence', async () => {
+      await renderCard({ ...casa, examples: EXAMPLES });
+      expect(actionsOfCard()).not.toContain('example');
+
+      await tap();
+      expect(actionsOfCard()).toContain('example');
+
+      await act(async () => {
+        fireEvent(screen.getByLabelText('Card: casa'), 'accessibilityAction', {
+          nativeEvent: { actionName: 'example' },
+        });
+      });
+      expect(screen.getByText('2 / 3')).toBeOnTheScreen();
+    });
+
+    test('no "Next example" with one sentence or none', async () => {
+      await renderCard({ ...casa, examples: EXAMPLES.slice(0, 1) });
+      await tap();
+
+      expect(actionsOfCard()).not.toContain('example');
+    });
   });
 });

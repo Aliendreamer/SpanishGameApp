@@ -17,13 +17,15 @@ Each step is its own OpenSpec change, approved and committed before the next sta
    `game-rules`, `match-overlay`, `settings-screen`, `words-screen`, `progress-screen`. Streaks and
    statistics (listed as later below) came with the Progress tab.
 
-Later: undo, English → Spanish, hints, topics, showing example sentences
-(format and UI to be decided — e.g. browsing a word's up-to-3 sentences on the flipped card).
+Later: undo, English → Spanish, hints, topics. Example sentences: browsing a word's up-to-3
+sentences on the flipped card is done (`example-sentences`, 2026-11-26); Bulgarian translations,
+sentences in My words, and fill-in-the-gap exercises are not planned yet.
 
 ## Decisions agreed for step 4
 
 - **Card:** Spanish lemma (with article for nouns); tap to reveal up to 3 English meanings and
-  1 example. Swipe right = know it, left = don't; ✓/✗ buttons do the same.
+  up to 3 examples, one at a time — tap the example box for the next (changed 2026-11-26; was 1
+  example). Swipe right = know it, left = don't; ✓/✗ buttons do the same.
 - **Session:** batches of 100, learned in rounds: a round shows each card once, and the next round is
   the words not learned yet, until none are left (changed 2026-11-25; before that, one pass and an
   optional practise round). No re-queueing within a round — missed words ~4 cards later was too

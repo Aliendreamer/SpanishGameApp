@@ -6,6 +6,7 @@ import { deckBands } from '@/vocabulary/levels';
 
 export const BATCH_SIZE = 100;
 const MAX_MEANINGS = 3;
+const MAX_EXAMPLES = 3;
 
 export type DeckWord = {
   // `lemma|pos`, the key progress is stored under.
@@ -17,8 +18,11 @@ export type DeckWord = {
   partOfSpeech: string;
   rank: number;
   meanings: string[];
-  example: { spanish: string; english: string } | null;
+  // Up to 3, in priority order; empty when the word has none.
+  examples: Example[];
 };
+
+export type Example = { spanish: string; english: string };
 
 type WordRow = {
   key: string;
@@ -70,7 +74,7 @@ export async function getWords(db: ProgressDb, keys: string[]): Promise<DeckWord
   return addDetails(db, rows);
 }
 
-// Adds the meanings and the first example to each word.
+// Adds the meanings and examples to each word.
 async function addDetails(db: ProgressDb, rows: WordRow[]): Promise<DeckWord[]> {
   if (rows.length === 0) return [];
 
@@ -93,9 +97,10 @@ async function addDetails(db: ProgressDb, rows: WordRow[]): Promise<DeckWord[]> 
     const list = meanings.get(key) ?? [];
     if (list.length < MAX_MEANINGS) meanings.set(key, [...list, english]);
   }
-  const firstExample = new Map<string, { spanish: string; english: string }>();
+  const examplesOf = new Map<string, Example[]>();
   for (const { key, spanish, english } of examples) {
-    if (!firstExample.has(key)) firstExample.set(key, { spanish, english });
+    const list = examplesOf.get(key) ?? [];
+    if (list.length < MAX_EXAMPLES) examplesOf.set(key, [...list, { spanish, english }]);
   }
 
   return rows.map((row) => ({
@@ -106,7 +111,7 @@ async function addDetails(db: ProgressDb, rows: WordRow[]): Promise<DeckWord[]> 
     partOfSpeech: row.part_of_speech,
     rank: row.frequency_rank,
     meanings: meanings.get(row.key) ?? [],
-    example: firstExample.get(row.key) ?? null,
+    examples: examplesOf.get(row.key) ?? [],
   }));
 }
 

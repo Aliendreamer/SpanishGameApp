@@ -86,6 +86,8 @@ export const en = {
     // The ↻ button's label, by the side it turns the card to.
     flipToMeaning: 'Show meaning',
     flipToWord: 'Show word',
+    // The card's screen reader action that shows the next example sentence.
+    nextExample: 'Next example',
   },
   summary: {
     // The end of a round, with words left to learn and with none.
