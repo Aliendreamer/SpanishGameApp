@@ -85,7 +85,7 @@ describe('build scripts', () => {
   ])('%s builds on EAS, EAS local, and Gradle', (profile, extension) => {
     expect(scripts[`build:${profile}`]).toBe(`pnpm eas build -p android --profile ${profile}`);
     expect(scripts[`build:${profile}:local`]).toBe(
-      `pnpm eas build -p android --profile ${profile} --local --output build/${profile}.${extension}`,
+      `EAS_SKIP_AUTO_FINGERPRINT=1 pnpm eas build -p android --profile ${profile} --local --output build/${profile}.${extension}`,
     );
     expect(scripts[`build:${profile}:gradle`]).toBe(`scripts/build-gradle.sh ${profile}`);
   });
