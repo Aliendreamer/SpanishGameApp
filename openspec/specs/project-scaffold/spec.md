@@ -6,7 +6,7 @@ exposes quality gates that pass on a clean checkout.
 ## Requirements
 ### Requirement: App runs in Expo Go on Android
 
-The project SHALL be an Expo SDK 57 app with Expo Router and TypeScript that starts with the dev
+The project SHALL be an Expo SDK 58 app with Expo Router and TypeScript that starts with the dev
 server and opens in Expo Go on an Android device, showing a single placeholder screen with the app
 title and no other features.
 
@@ -17,7 +17,7 @@ title and no other features.
 
 #### Scenario: Opens on the phone
 
-- **WHEN** the developer runs `pnpm start` and opens the project in Expo Go on Android
+- **WHEN** the developer runs `pnpm start` and opens the project in Expo Go for SDK 58 on Android
 - **THEN** the placeholder screen appears without a red error screen
 
 ### Requirement: Android-only configuration

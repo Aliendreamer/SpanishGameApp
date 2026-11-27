@@ -17,11 +17,11 @@ describe('checkToolchain', () => {
     expect(failing(complete())).toEqual([]);
   });
 
-  test('requires the Android 16 platform, build-tools, NDK, and platform-tools', () => {
+  test('requires the Android 17 platform, build-tools, NDK, and platform-tools', () => {
     expect(REQUIRED_SDK_PACKAGES).toEqual([
       'platform-tools',
-      'platforms;android-36',
-      'build-tools;36.0.0',
+      'platforms;android-37',
+      'build-tools;37.0.0',
       'ndk;27.1.12297006',
     ]);
   });
@@ -44,10 +44,10 @@ describe('checkToolchain', () => {
   test('fails for each missing SDK package', () => {
     const facts = {
       ...complete(),
-      installedSdkPackages: ['platform-tools', 'platforms;android-36'],
+      installedSdkPackages: ['platform-tools', 'platforms;android-37'],
     };
 
-    expect(failing(facts)).toEqual(['build-tools;36.0.0', 'ndk;27.1.12297006']);
+    expect(failing(facts)).toEqual(['build-tools;37.0.0', 'ndk;27.1.12297006']);
   });
 
   test('fails when JAVA_HOME points at a JDK other than 17', () => {

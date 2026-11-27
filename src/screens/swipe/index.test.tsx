@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import { State } from 'react-native-gesture-handler';
+import { GestureHandlerRootView, State } from 'react-native-gesture-handler';
 import { fireGestureHandler, getByGestureTestId } from 'react-native-gesture-handler/jest-utils';
 
 import { InBulgarian } from '@/i18n/testing';
@@ -52,6 +52,8 @@ async function renderSwipe({
       onNextBatch={onNextBatch}
       onOpenSettings={onOpenSettings}
     />,
+    // Gesture Handler 3 needs its root view above every detector, as the app's root layout has.
+    { wrapper: GestureHandlerRootView },
   );
   return { onAnswer, onNextRound, onNextBatch, onOpenSettings };
 }
@@ -308,15 +310,17 @@ describe('<Swipe />', () => {
       throw new Error('disk full');
     });
     await render(
-      <Swipe
-        levelLine="Начинаещ · A1, A2"
-        username="Ana"
-        initialRound={roundOf(words)}
-        onAnswer={onAnswer}
-        onNextRound={jest.fn()}
-        onNextBatch={jest.fn()}
-        onOpenSettings={jest.fn()}
-      />,
+      <GestureHandlerRootView>
+        <Swipe
+          levelLine="Начинаещ · A1, A2"
+          username="Ana"
+          initialRound={roundOf(words)}
+          onAnswer={onAnswer}
+          onNextRound={jest.fn()}
+          onNextBatch={jest.fn()}
+          onOpenSettings={jest.fn()}
+        />
+      </GestureHandlerRootView>,
       { wrapper: InBulgarian },
     );
 

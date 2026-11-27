@@ -1,13 +1,13 @@
 schema: spec-driven
 
 context: |
-  Android-only React Native app: Expo SDK 57, Expo Router, TypeScript (strict), pnpm.
+  Android-only React Native app: Expo SDK 58, Expo Router, TypeScript (strict), pnpm.
   Tinder-style Spanish vocabulary swipe game, fully offline — no backend, no network at runtime.
   Layout: src/app routes only; src/screens, src/components, src/hooks, src/utils; tests colocated.
   Gates: pnpm check (typecheck, lint, format:check, test, check:pins, expo:doctor).
   Dependencies are pinned to exact versions. Roadmap and agreed decisions: openspec/ROADMAP.md.
   Android builds: profiles development/preview/production via EAS cloud, eas build --local, or
-  scripts/build-gradle.sh (no EAS); target/compile SDK 36; signing key backed up under git-crypt.
+  scripts/build-gradle.sh (no EAS); compile SDK 37, target SDK 36; signing key backed up under git-crypt.
   Vocabulary: pnpm vocab:build [--cefr] → assets/vocabulary/vocabulary.db (SQLite, keyed lemma|pos,
   tables vocabulary/translations/word_forms/examples/metadata); ~19.8k Spanish→English words.
 

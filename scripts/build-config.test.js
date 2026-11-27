@@ -25,10 +25,10 @@ describe('app config', () => {
   const plugin = (name) =>
     exp.plugins.find((entry) => (Array.isArray(entry) ? entry[0] : entry) === name);
 
-  test('compiles against and targets Android 16 (API 36)', () => {
+  test('compiles against API 37 and targets Android 16 (API 36)', () => {
     expect(plugin('expo-build-properties')).toEqual([
       'expo-build-properties',
-      { android: expect.objectContaining({ compileSdkVersion: 36, targetSdkVersion: 36 }) },
+      { android: expect.objectContaining({ compileSdkVersion: 37, targetSdkVersion: 36 }) },
     ]);
   });
 
@@ -114,7 +114,7 @@ describe('toolchain versions', () => {
   test('pnpm settings live in pnpm-workspace.yaml, which pnpm 11 still reads', () => {
     expect(pkg.pnpm).toBeUndefined();
     expect(fs.readFileSync(path.join(root, 'pnpm-workspace.yaml'), 'utf8')).toMatch(
-      /overrides:\n(\s+#.*\n)*\s+test-renderer: 1\.2\.0/,
+      /^saveExact: true$/m,
     );
   });
 });

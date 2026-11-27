@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { createRef } from 'react';
-import { State } from 'react-native-gesture-handler';
+import { GestureHandlerRootView, State } from 'react-native-gesture-handler';
 import { fireGestureHandler, getByGestureTestId } from 'react-native-gesture-handler/jest-utils';
 
 import { TAP_DISTANCE } from '@/screens/swipe/motion';
@@ -31,7 +31,10 @@ async function renderCard(word: DeckWord = casa) {
   const onAnswer = jest.fn();
   const onFlip = jest.fn();
   const ref = createRef<SwipeCardHandle>();
-  await render(<SwipeCard ref={ref} word={word} onAnswer={onAnswer} onFlip={onFlip} />);
+  // Gesture Handler 3 needs its root view above every detector, as the app's root layout has.
+  await render(<SwipeCard ref={ref} word={word} onAnswer={onAnswer} onFlip={onFlip} />, {
+    wrapper: GestureHandlerRootView,
+  });
   return { onAnswer, onFlip, ref };
 }
 

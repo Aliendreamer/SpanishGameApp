@@ -4,10 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Stack
 
-Expo SDK 57 + Expo Router + TypeScript, React Native 0.86, Android only, pnpm 12 (`packageManager`
+Expo SDK 58 + Expo Router + TypeScript, React Native 0.88, Android only, pnpm 12 (`packageManager`
 in `package.json`; EAS builds use the same pnpm and Node via the `base` profile in `eas.json`). Roadmap and
-agreed decisions: `openspec/ROADMAP.md`. Expo docs: read the SDK 57 pages
-(`https://docs.expo.dev/versions/v57.0.0/`), not `latest` — the Expo MCP docs tools are allowed.
+agreed decisions: `openspec/ROADMAP.md`. Expo docs: read the SDK 58 pages
+(`https://docs.expo.dev/versions/v58.0.0/`), not `latest` — the Expo MCP docs tools are allowed.
 
 ## Commands
 
@@ -35,7 +35,7 @@ ways — output lands in `build/`:
   Plugin writes to `/tmp`, file watching fails) — the user runs them; the agent verifies the output
   with `apksigner verify --print-certs`. Never run two builds at once: they share `android/`.
 
-Toolchain: `scripts/setup-android.sh` installs JDK 17 + SDK (platform 36, build-tools 36.0.0, NDK
+Toolchain: `scripts/setup-android.sh` installs JDK 17 + SDK (platform 37, build-tools 37.0.0, NDK
 27.1) — command-line tools 16111833+ use the new `android sdk install` CLI, not `sdkmanager`.
 Verify with `pnpm doctor:android`. EAS CLI runs as `pnpm eas …` (`pnpm dlx eas-cli@24.7.0`); it
 must not be a project dependency — `expo-doctor` fails if it is.
@@ -69,8 +69,7 @@ would orphan. Generated files are committed; never hand-edit them. The tool has 
   the sandbox), and in the sandbox Node's `fetch` only uses the proxy with `NODE_USE_ENV_PROXY=1`
   — so the agent runs the gates as `NODE_USE_ENV_PROXY=1 EXPO_NO_TELEMETRY=1 pnpm check`.
 - pnpm settings live in `pnpm-workspace.yaml` (pnpm 11+ ignores the `pnpm` field in `package.json`
-  and `.npmrc` settings; `.npmrc` stays only for tools that read it). It pins `test-renderer` to
-  1.2.0 (1.3.0 needs React 19.3; React Native 0.86 ships 19.2.3) and keeps pnpm's default
+  and `.npmrc` settings; `.npmrc` stays only for tools that read it). It keeps pnpm's default
   `minimumReleaseAge` (packages under 24 h old are refused). If an install trips that rule, re-resolve
   with `pnpm clean --lockfile && pnpm install` — don't add `minimumReleaseAgeExclude` entries.
 - pnpm 12 has no `-s` flag; use `pnpm <script>` or `pnpm --silent <script>`.
@@ -78,9 +77,11 @@ would orphan. Generated files are committed; never hand-edit them. The tool has 
   `expo start` run by the agent did not refresh it. If `typecheck` rejects a new route as an
   unknown href, the file is stale: delete it (typecheck then treats hrefs as plain strings) and
   let the next `pnpm start` regenerate it. `expo export` also rewrites it stale.
-- Jest: `jest.setup.js` swaps in the worklets and Reanimated test mocks. Expo Router's
-  `renderRouter` puts `getPathname` on the promise it returns, so keep that object and `await` it
-  separately. `renderRouter` also turns on fake timers, under which a `waitFor` makes the router
+- Jest: `jest.setup.js` swaps in the worklets and Reanimated test mocks, and
+  `scripts/jest-resolver.js` adds Reanimated's resolver to React Native's (it works around pnpm's
+  store folder names). Gesture Handler 3 needs a `GestureHandlerRootView` above every
+  `GestureDetector`, so tests that render the swipe card wrap it in one. `renderRouter` turns on
+  fake timers, under which a `waitFor` makes the router
   ignore later `router.push` calls: navigate first, then assert on storage. Never give `waitFor` an async
   check there (it can resolve while its own `act()` runs, and later tests then fail on an empty
   screen): wait on the database with the `eventually` helper in `src/__tests__/app/index.test.tsx`.

@@ -21,6 +21,11 @@ Later: undo, English → Spanish, hints, topics. Example sentences: browsing a w
 sentences on the flipped card is done (`example-sentences`, 2026-11-26); Bulgarian translations,
 sentences in My words, and fill-in-the-gap exercises are not planned yet.
 
+Upkeep: the app moved to Expo SDK 58 (`upgrade-sdk-58`, 2026-11-27). The swipe card still uses
+Gesture Handler's builder API (`Gesture.Pan()`, `Gesture.Tap()`), which version 3 deprecates; moving
+it to the hook API (`usePanGesture`, `useTapGesture`) is a change of its own, due before a Gesture
+Handler release drops the builder API.
+
 ## Decisions agreed for step 4
 
 - **Card:** Spanish lemma (with article for nouns); tap to reveal up to 3 English meanings and

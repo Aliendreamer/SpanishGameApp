@@ -3,6 +3,7 @@ import { act, fireEvent, screen } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
 import { router as appRouter } from 'expo-router';
 import { renderRouter } from 'expo-router/testing-library';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { BUNDLED_VOCABULARY, openTestDb, type TestDb } from '../../../scripts/node-sqlite-db';
 
@@ -53,20 +54,17 @@ const firstLaunch: LaunchPrefs = {
   language: 'en',
 };
 
-// renderRouter adds getPathname to the promise that Testing Library 14's render returns, so keep
-// that object and await it separately; awaiting it (or returning it from an async function)
-// drops the helper.
-// The root layout reads the launch prefs and provides the language; here both come straight from
-// `launch`.
+// The root layout reads the launch prefs, provides the language, and holds the gestures' root view;
+// here the prefs and language come straight from `launch`.
 async function renderApp(initialUrl = '/', launch = firstLaunch) {
   const wrapper = ({ children }: { children: ReactNode }) => (
-    <LaunchContext value={launch}>
-      <LanguageProvider initial={launch.language}>{children}</LanguageProvider>
-    </LaunchContext>
+    <GestureHandlerRootView>
+      <LaunchContext value={launch}>
+        <LanguageProvider initial={launch.language}>{children}</LanguageProvider>
+      </LaunchContext>
+    </GestureHandlerRootView>
   );
-  const router = renderRouter(routes, { initialUrl, wrapper });
-  await router;
-  return { router };
+  return { router: await renderRouter(routes, { initialUrl, wrapper }) };
 }
 
 // Waits for something asynchronous, like a row in the database. Under renderRouter's fake timers,

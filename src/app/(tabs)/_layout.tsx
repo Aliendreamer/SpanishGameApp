@@ -19,11 +19,15 @@ export default function TabsLayout() {
     <DeckRefreshContext value={{ version, invalidate }}>
       <Tabs
         screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.background } }}
-        tabBar={({ state, navigation }) => (
+        tabBar={({ state, navigateToTab }) => (
           <TabBar
             tabs={TABS.map((name) => ({ name, label: t.tabs[name] }))}
             active={state.routes[state.index].name}
-            onSelect={(name) => navigation.navigate(name)}
+            // The tab bar switches tabs by route key, not by name.
+            onSelect={(name) => {
+              const route = state.routes.find((candidate) => candidate.name === name);
+              if (route) navigateToTab(route.key);
+            }}
           />
         )}
       >
