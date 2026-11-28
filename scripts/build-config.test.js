@@ -73,6 +73,12 @@ describe('eas.json', () => {
 describe('build scripts', () => {
   const { scripts, devDependencies } = readJSON('package.json');
 
+  // The QR code points straight at Expo Go: expo-dev-client otherwise sends it to a page asking
+  // which app to open, and that page's redirect fails through the tunnel.
+  test('pnpm start opens in Expo Go over the tunnel without the app-choice page', () => {
+    expect(scripts.start).toBe('EXPO_NO_REDIRECT_PAGE=1 expo start --tunnel --go');
+  });
+
   test('runs a pinned eas-cli through pnpm dlx, not as a project dependency', () => {
     expect(scripts.eas).toMatch(/^pnpm dlx eas-cli@\d+\.\d+\.\d+$/);
     expect(devDependencies['eas-cli']).toBeUndefined();

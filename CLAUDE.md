@@ -13,6 +13,8 @@ agreed decisions: `openspec/ROADMAP.md`. Expo docs: read the SDK 58 pages
 
 - `pnpm start` — dev server over an Expo tunnel (reaches the phone from WSL2); scan the QR code in
   Expo Go. `@expo/ngrok` is a pinned devDependency so Expo never installs it with npm.
+  `EXPO_NO_REDIRECT_PAGE=1` makes the QR code open Expo Go directly: with `expo-dev-client`
+  installed it would point at an app-choice page whose redirect fails through the tunnel.
 - `pnpm start:dev` — same, for the development build (`expo-dev-client`) instead of Expo Go.
 - `pnpm check` — every gate: `typecheck`, `lint`, `format:check`, `test`, `check:pins`,
   `expo:doctor` (fail-fast)

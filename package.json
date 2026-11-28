@@ -46,7 +46,7 @@
     "typescript": "6.0.3"
   },
   "scripts": {
-    "start": "expo start --tunnel --go",
+    "start": "EXPO_NO_REDIRECT_PAGE=1 expo start --tunnel --go",
     "start:dev": "expo start --tunnel --dev-client",
     "android": "expo run:android",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tools/vocabulary-import",
