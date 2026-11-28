@@ -20,7 +20,7 @@ describe('checkToolchain', () => {
   test('requires the Android 17 platform, build-tools, NDK, and platform-tools', () => {
     expect(REQUIRED_SDK_PACKAGES).toEqual([
       'platform-tools',
-      'platforms;android-37',
+      'platforms;android-37.0',
       'build-tools;37.0.0',
       'ndk;27.1.12297006',
     ]);
@@ -44,7 +44,7 @@ describe('checkToolchain', () => {
   test('fails for each missing SDK package', () => {
     const facts = {
       ...complete(),
-      installedSdkPackages: ['platform-tools', 'platforms;android-37'],
+      installedSdkPackages: ['platform-tools', 'platforms;android-37.0'],
     };
 
     expect(failing(facts)).toEqual(['build-tools;37.0.0', 'ndk;27.1.12297006']);

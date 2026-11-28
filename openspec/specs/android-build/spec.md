@@ -82,7 +82,7 @@ encrypted form and SHALL be excluded from EAS cloud uploads.
 ### Requirement: Toolchain check
 
 `pnpm doctor:android` SHALL report each toolchain prerequisite — JDK 17, `JAVA_HOME`,
-`ANDROID_HOME`, `platform-tools`, `platforms;android-37`, `build-tools;37.0.0`, and
+`ANDROID_HOME`, `platform-tools`, `platforms;android-37.0`, `build-tools;37.0.0`, and
 `ndk;27.1.12297006` — and exit non-zero when any is missing.
 
 #### Scenario: Missing SDK package

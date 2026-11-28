@@ -6,7 +6,7 @@ const path = require('path');
 
 const REQUIRED_SDK_PACKAGES = [
   'platform-tools',
-  'platforms;android-37',
+  'platforms;android-37.0',
   'build-tools;37.0.0',
   'ndk;27.1.12297006',
 ];
